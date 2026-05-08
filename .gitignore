@@ -1,0 +1,167 @@
+# ─────────────────────────────────────────────
+#  MaintainTrack Pro — .gitignore
+#  Java 17 + JavaFX · Maven · Python · SQLite
+# ─────────────────────────────────────────────
+
+
+# ── JAVA / MAVEN ──────────────────────────────
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+
+# Maven wrapper (keep if committed, ignore if not)
+# .mvn/wrapper/maven-wrapper.jar
+
+# Maven local repo cache pulled by the build
+.m2/
+
+# Generated sources (e.g. JAXB, Lombok, etc.)
+generated-sources/
+generated-test-sources/
+
+
+# ── JAVAFX ────────────────────────────────────
+# JavaFX SDK — download separately, never commit
+javafx-sdk/
+javafx*/
+
+
+# ── SQLITE DATABASE ───────────────────────────
+# The live database file — contains real data, never commit
+data/*.db
+data/*.db-shm
+data/*.db-wal
+data/*.sqlite
+
+# Seed / dev databases are fine to exclude too
+*.db
+*.sqlite
+
+
+# ── PYTHON ────────────────────────────────────
+# Virtual environment
+scripts/venv/
+scripts/.venv/
+venv/
+.venv/
+env/
+ENV/
+
+# Byte-compiled cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+scripts/dist/
+scripts/build/
+scripts/*.egg-info/
+*.egg
+
+# pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Jupyter notebooks (if used for analysis)
+.ipynb_checkpoints/
+
+
+# ── GENERATED REPORTS & EXPORTS ───────────────
+# PDF and Excel outputs should not be committed
+reports/
+exports/
+*.pdf
+*.xlsx
+*.xls
+*.csv
+
+
+# ── IDES & EDITORS ────────────────────────────
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Eclipse
+.eclipse/
+.classpath
+.project
+.settings/
+bin/
+
+# NetBeans
+nbproject/
+nbbuild/
+nbdist/
+.nb-gradle/
+
+# Vim / Emacs swap files
+*.swp
+*.swo
+*~
+\#*\#
+.DS_Store
+
+
+# ── OS FILES ──────────────────────────────────
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+.directory
+.Trash-*
+
+
+# ── LOGS & TEMP ───────────────────────────────
+logs/
+*.log
+*.log.*
+log/
+tmp/
+temp/
+*.tmp
+*.bak
+*.orig
+
+
+# ── SECRETS & CONFIG ──────────────────────────
+# Never commit credentials or local overrides
+.env
+.env.*
+!.env.example
+config/local.*
+secrets.*
+*.key
+*.pem
+*.p12
+*.jks
+
+
+# ── BUILD ARTIFACTS ───────────────────────────
+# Final packaged JARs (built via mvn package)
+# Uncomment if you don't want to commit release JARs
+# release/
+# *.jar
