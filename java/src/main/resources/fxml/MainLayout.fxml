@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.maintaintrack.controllers.MainLayoutController"
+            prefWidth="1100" prefHeight="720"
+            styleClass="root-pane">
+
+    <!-- ── SIDEBAR ─────────────────────────────────────────────────── -->
+    <left>
+        <VBox styleClass="sidebar" prefWidth="200" spacing="4">
+            <padding><Insets top="24" right="12" bottom="24" left="12"/></padding>
+
+            <!-- App title -->
+            <Label text="MaintainTrack" styleClass="sidebar-title"/>
+            <Label text="Pro" styleClass="sidebar-subtitle"/>
+
+            <Separator styleClass="sidebar-sep"/>
+
+            <!-- Nav buttons -->
+            <Button fx:id="btnDashboard"  text="📊  Dashboard"  styleClass="nav-btn" maxWidth="Infinity" onAction="#showDashboard"/>
+            <Button fx:id="btnEquipment"  text="⚙️  Equipment"  styleClass="nav-btn" maxWidth="Infinity" onAction="#showEquipment"/>
+            <Button fx:id="btnParts"      text="🔩  Parts"       styleClass="nav-btn" maxWidth="Infinity" onAction="#showParts"/>
+            <Button fx:id="btnSuppliers"  text="🏭  Suppliers"   styleClass="nav-btn" maxWidth="Infinity" onAction="#showSuppliers"/>
+
+            <Separator styleClass="sidebar-sep"/>
+
+            <Button fx:id="btnMaintenance" text="🔧  Maintenance" styleClass="nav-btn" maxWidth="Infinity" onAction="#showMaintenance"/>
+            <Button fx:id="btnBreakdown"   text="⚠️  Breakdowns"  styleClass="nav-btn" maxWidth="Infinity" onAction="#showBreakdown"/>
+            <Button fx:id="btnIssues"      text="📦  Issues"       styleClass="nav-btn" maxWidth="Infinity" onAction="#showIssues"/>
+
+            <!-- Spacer pushes version to bottom -->
+            <Region VBox.vgrow="ALWAYS"/>
+            <Label text="v1.0.0" styleClass="sidebar-version"/>
+        </VBox>
+    </left>
+
+    <!-- ── MAIN CONTENT AREA ────────────────────────────────────────── -->
+    <center>
+        <StackPane fx:id="contentArea" styleClass="content-area">
+            <!-- Screens are swapped in here by MainLayoutController -->
+        </StackPane>
+    </center>
+
+</BorderPane>

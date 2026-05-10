@@ -1,0 +1,175 @@
+/* ═══════════════════════════════════════════════════════════
+   MaintainTrack Pro — app.css
+   Global stylesheet for all JavaFX screens
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Root & Background ────────────────────────────────────── */
+.root-pane {
+    -fx-background-color: #f0f2f5;
+}
+
+.content-area {
+    -fx-background-color: #f0f2f5;
+}
+
+/* ── Sidebar ──────────────────────────────────────────────── */
+.sidebar {
+    -fx-background-color: #1b3a6b;
+}
+
+.sidebar-title {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-padding: 0 0 0 4;
+}
+
+.sidebar-subtitle {
+    -fx-text-fill: #2e86de;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 0 0 8 4;
+}
+
+.sidebar-sep {
+    -fx-background-color: #2e4a7a;
+    -fx-opacity: 0.6;
+}
+
+.sidebar-version {
+    -fx-text-fill: #5c6b8a;
+    -fx-font-size: 11px;
+    -fx-padding: 0 0 0 4;
+}
+
+/* ── Nav Buttons ──────────────────────────────────────────── */
+.nav-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #c8d6f0;
+    -fx-font-size: 13px;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 10 12 10 12;
+    -fx-cursor: hand;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+}
+
+.nav-btn:hover {
+    -fx-background-color: #2e4a7a;
+    -fx-text-fill: #ffffff;
+}
+
+/* ── Screen Root ──────────────────────────────────────────── */
+.screen-root {
+    -fx-background-color: #f0f2f5;
+}
+
+/* ── Screen Title ─────────────────────────────────────────── */
+.screen-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1b3a6b;
+}
+
+/* ── Search Field ─────────────────────────────────────────── */
+.search-field {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #d0d7e3;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 7 12 7 12;
+}
+
+/* ── Table ────────────────────────────────────────────────── */
+.main-table {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #d0d7e3;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+}
+
+.main-table .column-header {
+    -fx-background-color: #f4f6fa;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1b3a6b;
+}
+
+.main-table .table-row-cell:selected {
+    -fx-background-color: #d6e8fa;
+}
+
+.main-table .table-row-cell:hover {
+    -fx-background-color: #eef4fb;
+}
+
+/* ── Form Panel ───────────────────────────────────────────── */
+.form-panel {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #d0d7e3;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 20;
+}
+
+.form-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1b3a6b;
+}
+
+.form-label {
+    -fx-font-size: 13px;
+    -fx-text-fill: #5c6b8a;
+}
+
+/* ── Buttons ──────────────────────────────────────────────── */
+.btn-primary {
+    -fx-background-color: #2e86de;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+    -fx-padding: 8 20 8 20;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+.btn-primary:hover {
+    -fx-background-color: #1b6fc4;
+}
+
+.btn-secondary {
+    -fx-background-color: #d0d7e3;
+    -fx-text-fill: #1b3a6b;
+    -fx-font-weight: bold;
+    -fx-padding: 8 20 8 20;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+.btn-secondary:hover {
+    -fx-background-color: #b8c3d6;
+}
+
+.btn-danger {
+    -fx-background-color: #c0392b;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+    -fx-padding: 8 20 8 20;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+.btn-danger:hover {
+    -fx-background-color: #96281b;
+}
+
+/* ── Error Label ──────────────────────────────────────────── */
+.error-label {
+    -fx-text-fill: #c0392b;
+    -fx-font-size: 12px;
+}
+
+/* ── Placeholder screens ──────────────────────────────────── */
+.placeholder-label {
+    -fx-font-size: 18px;
+    -fx-text-fill: #5c6b8a;
+}
