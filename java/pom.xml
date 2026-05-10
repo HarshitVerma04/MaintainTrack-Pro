@@ -64,6 +64,7 @@
                 <version>0.0.8</version>
                 <configuration>
                     <mainClass>com.maintaintrack.MainApp</mainClass>
+                    <workingDirectory>${project.basedir}/..</workingDirectory>
                 </configuration>
             </plugin>
 

@@ -30,6 +30,7 @@ public class DBConnection {
      * Caller is responsible for closing it (use try-with-resources).
      */
     public static Connection getConnection() throws SQLException {
+        new java.io.File("data").mkdirs(); // creates data/ if missing
         return DriverManager.getConnection(URL);
     }
 }

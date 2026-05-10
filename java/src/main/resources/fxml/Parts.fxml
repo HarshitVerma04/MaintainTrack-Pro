@@ -1,6 +1,89 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<StackPane xmlns:fx="http://javafx.com/fxml" styleClass="screen-root">
-    <Label text="Parts — coming soon" styleClass="placeholder-label"/>
-</StackPane>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.maintaintrack.controllers.PartController"
+      spacing="16" styleClass="screen-root">
+
+    <padding><Insets top="24" right="28" bottom="24" left="28"/></padding>
+
+    <!-- HEADER -->
+    <HBox alignment="CENTER_LEFT" spacing="12">
+        <Label text="Parts &amp; Inventory" styleClass="screen-title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label fx:id="lowStockBadge" text="&#9888;  Low Stock" styleClass="badge-danger"
+               visible="false" managed="false"/>
+        <TextField fx:id="searchField" promptText="Search by name or supplier..."
+                   prefWidth="240" styleClass="search-field"
+                   onKeyReleased="#onSearch"/>
+        <Button text="+ Add Part" styleClass="btn-primary" onAction="#onAdd"/>
+    </HBox>
+
+    <!-- TABLE -->
+    <TableView fx:id="partsTable" VBox.vgrow="ALWAYS" styleClass="main-table">
+        <columns>
+            <TableColumn fx:id="colId"          text="ID"          prefWidth="50"/>
+            <TableColumn fx:id="colName"        text="Part Name"   prefWidth="220"/>
+            <TableColumn fx:id="colSupplier"    text="Supplier"    prefWidth="160"/>
+            <TableColumn fx:id="colQty"         text="Qty"         prefWidth="80"/>
+            <TableColumn fx:id="colMinQty"      text="Min Qty"     prefWidth="80"/>
+            <TableColumn fx:id="colUnit"        text="Unit"        prefWidth="80"/>
+            <TableColumn fx:id="colUnitCost"    text="Unit Cost"   prefWidth="110"/>
+            <TableColumn fx:id="colStockStatus" text="Stock"       prefWidth="100"/>
+        </columns>
+        <placeholder>
+            <Label text="No parts found. Click Add Part to get started."/>
+        </placeholder>
+    </TableView>
+
+    <!-- FORM PANEL -->
+    <VBox fx:id="formPanel" styleClass="form-panel" spacing="12"
+          visible="false" managed="false">
+
+        <Label fx:id="formTitle" text="Add Part" styleClass="form-title"/>
+
+        <GridPane hgap="16" vgap="10">
+
+            <!-- Row 0: Name + Supplier -->
+            <Label text="Part Name *" GridPane.rowIndex="0" GridPane.columnIndex="0" styleClass="form-label"/>
+            <TextField fx:id="fieldName" promptText="e.g. Hydraulic Oil Filter"
+                       GridPane.rowIndex="0" GridPane.columnIndex="1" prefWidth="240"/>
+
+            <Label text="Supplier" GridPane.rowIndex="0" GridPane.columnIndex="2" styleClass="form-label"/>
+            <ComboBox fx:id="fieldSupplier" GridPane.rowIndex="0" GridPane.columnIndex="3" prefWidth="200"/>
+
+            <!-- Row 1: Qty + Min Qty -->
+            <Label text="Qty on Hand *" GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="form-label"/>
+            <TextField fx:id="fieldQty" promptText="e.g. 20"
+                       GridPane.rowIndex="1" GridPane.columnIndex="1" prefWidth="240"/>
+
+            <Label text="Min Qty *" GridPane.rowIndex="1" GridPane.columnIndex="2" styleClass="form-label"/>
+            <TextField fx:id="fieldMinQty" promptText="e.g. 5"
+                       GridPane.rowIndex="1" GridPane.columnIndex="3" prefWidth="200"/>
+
+            <!-- Row 2: Unit + Unit Cost -->
+            <Label text="Unit *" GridPane.rowIndex="2" GridPane.columnIndex="0" styleClass="form-label"/>
+            <ComboBox fx:id="fieldUnit" GridPane.rowIndex="2" GridPane.columnIndex="1"
+                      prefWidth="240" editable="true"/>
+
+            <Label text="Unit Cost (Rs)" GridPane.rowIndex="2" GridPane.columnIndex="2" styleClass="form-label"/>
+            <TextField fx:id="fieldUnitCost" promptText="e.g. 450.00"
+                       GridPane.rowIndex="2" GridPane.columnIndex="3" prefWidth="200"/>
+
+        </GridPane>
+
+        <!-- Form buttons -->
+        <HBox spacing="10">
+            <Button text="Save"   styleClass="btn-primary"   onAction="#onSave"/>
+            <Button text="Cancel" styleClass="btn-secondary" onAction="#onCancel"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="btnDelete" text="Delete" styleClass="btn-danger" onAction="#onDelete"/>
+        </HBox>
+
+        <Label fx:id="errorLabel" styleClass="error-label" text="" wrapText="true"/>
+    </VBox>
+
+</VBox>
