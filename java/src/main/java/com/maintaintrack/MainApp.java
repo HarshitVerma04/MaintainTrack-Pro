@@ -1,9 +1,9 @@
 package com.maintaintrack;
 
+import com.maintaintrack.dao.DatabaseInitializer;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -25,6 +25,9 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage primaryStage) throws IOException {
+
+        // ── Initialize database (creates tables if not exist) ─────────
+        DatabaseInitializer.initialize();
 
         // ── Load the root layout ──────────────────────────────────────
         FXMLLoader loader = new FXMLLoader(
