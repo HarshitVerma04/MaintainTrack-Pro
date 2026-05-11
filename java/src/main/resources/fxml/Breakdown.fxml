@@ -1,6 +1,80 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<StackPane xmlns:fx="http://javafx.com/fxml" styleClass="screen-root">
-    <Label text="Breakdown — coming soon" styleClass="placeholder-label"/>
-</StackPane>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.maintaintrack.controllers.BreakdownController"
+      spacing="16" styleClass="screen-root">
+
+    <padding><Insets top="24" right="28" bottom="24" left="28"/></padding>
+
+    <!-- HEADER -->
+    <HBox alignment="CENTER_LEFT" spacing="12">
+        <Label text="Breakdown Log" styleClass="screen-title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label fx:id="totalBadge" text="" styleClass="badge-danger"
+               visible="false" managed="false"/>
+        <Button text="+ Log Breakdown" styleClass="btn-primary" onAction="#onAdd"/>
+    </HBox>
+
+    <!-- FORM PANEL -->
+    <VBox fx:id="formPanel" styleClass="form-panel" spacing="12"
+          visible="false" managed="false">
+
+        <Label text="Log Breakdown Incident" styleClass="form-title"/>
+
+        <GridPane hgap="16" vgap="10">
+
+            <!-- Row 0: Equipment + Occurred On -->
+            <Label text="Equipment *" GridPane.rowIndex="0" GridPane.columnIndex="0" styleClass="form-label"/>
+            <ComboBox fx:id="fieldEquipment" GridPane.rowIndex="0" GridPane.columnIndex="1"
+                      prefWidth="280"/>
+
+            <Label text="Occurred On *" GridPane.rowIndex="0" GridPane.columnIndex="2" styleClass="form-label"/>
+            <DatePicker fx:id="fieldOccurredOn" GridPane.rowIndex="0" GridPane.columnIndex="3"
+                        prefWidth="200"/>
+
+            <!-- Row 1: Resolved By + Description -->
+            <Label text="Resolved By" GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="form-label"/>
+            <TextField fx:id="fieldResolvedBy" promptText="e.g. Ravi (optional)"
+                       GridPane.rowIndex="1" GridPane.columnIndex="1" prefWidth="280"/>
+
+            <Label text="Description *" GridPane.rowIndex="1" GridPane.columnIndex="2" styleClass="form-label"/>
+            <TextField fx:id="fieldDescription" promptText="e.g. Hydraulic leak — seal worn out"
+                       GridPane.rowIndex="1" GridPane.columnIndex="3" prefWidth="200"/>
+
+        </GridPane>
+
+        <!-- Status update hint -->
+        <HBox alignment="CENTER_LEFT" spacing="8"
+              style="-fx-background-color: #fff3cd; -fx-padding: 8 12 8 12; -fx-background-radius: 6;">
+            <Label text="Tip:" style="-fx-font-weight: bold; -fx-text-fill: #b85c00;"/>
+            <Label text="Remember to update the equipment status to 'Under Maintenance' on the Equipment screen."
+                   style="-fx-text-fill: #b85c00;" wrapText="true"/>
+        </HBox>
+
+        <HBox spacing="10">
+            <Button text="Save"   styleClass="btn-primary"   onAction="#onSave"/>
+            <Button text="Cancel" styleClass="btn-secondary" onAction="#onCancel"/>
+        </HBox>
+
+        <Label fx:id="errorLabel" styleClass="error-label" text="" wrapText="true"/>
+    </VBox>
+
+    <!-- TABLE -->
+    <TableView fx:id="logTable" VBox.vgrow="ALWAYS" styleClass="main-table">
+        <columns>
+            <TableColumn fx:id="colId"          text="ID"          prefWidth="50"/>
+            <TableColumn fx:id="colEquipment"   text="Equipment"   prefWidth="200"/>
+            <TableColumn fx:id="colOccurredOn"  text="Occurred On" prefWidth="130"/>
+            <TableColumn fx:id="colResolvedBy"  text="Resolved By" prefWidth="140"/>
+            <TableColumn fx:id="colDescription" text="Description" prefWidth="380"/>
+        </columns>
+        <placeholder>
+            <Label text="No breakdowns recorded. Click Log Breakdown to record an incident."/>
+        </placeholder>
+    </TableView>
+
+</VBox>
