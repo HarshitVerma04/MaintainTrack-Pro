@@ -186,3 +186,81 @@
     -fx-border-radius: 12;
     -fx-border-width: 1;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   DASHBOARD STYLES
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── KPI Tiles ────────────────────────────────────────────── */
+.kpi-tile {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #d0d7e3;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-padding: 20 24 20 24;
+    -fx-spacing: 4;
+}
+
+.kpi-tile-danger {
+    -fx-background-color: #fdecea;
+    -fx-border-color: #c0392b;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-padding: 20 24 20 24;
+    -fx-spacing: 4;
+}
+
+.kpi-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #5c6b8a;
+    -fx-font-weight: bold;
+}
+
+.kpi-value {
+    -fx-font-size: 36px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1b3a6b;
+}
+
+.kpi-value-danger {
+    -fx-font-size: 36px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #8b1a1a;
+}
+
+.kpi-sub {
+    -fx-font-size: 12px;
+    -fx-text-fill: #5c6b8a;
+}
+
+.kpi-sub-warn {
+    -fx-text-fill: #b85c00;
+}
+
+.kpi-sub-danger {
+    -fx-text-fill: #8b1a1a;
+}
+
+/* ── Dashboard Cards ──────────────────────────────────────── */
+.dash-card {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #d0d7e3;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+}
+
+.card-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1b3a6b;
+}
+
+/* ── Alert Scroll ─────────────────────────────────────────── */
+.alert-scroll {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.alert-scroll .viewport {
+    -fx-background-color: transparent;
+}

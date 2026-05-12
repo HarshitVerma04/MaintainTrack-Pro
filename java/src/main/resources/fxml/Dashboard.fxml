@@ -1,6 +1,95 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<StackPane xmlns:fx="http://javafx.com/fxml" styleClass="screen-root">
-    <Label text="Dashboard — coming soon" styleClass="placeholder-label"/>
-</StackPane>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.maintaintrack.controllers.DashboardController"
+      spacing="16" styleClass="screen-root">
+
+    <padding><Insets top="24" right="28" bottom="24" left="28"/></padding>
+
+    <!-- ── HEADER ─────────────────────────────────────────────────── -->
+    <HBox alignment="CENTER_LEFT" spacing="12">
+        <Label text="Dashboard" styleClass="screen-title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label fx:id="lastRefreshed" text="" styleClass="form-label"/>
+        <Button text="↻  Refresh" styleClass="btn-secondary" onAction="#onRefresh"/>
+    </HBox>
+
+    <!-- ── KPI TILES ROW ──────────────────────────────────────────── -->
+    <HBox spacing="16">
+
+        <!-- Tile 1: Total Equipment -->
+        <VBox styleClass="kpi-tile" HBox.hgrow="ALWAYS">
+            <Label text="Total Equipment" styleClass="kpi-label"/>
+            <Label fx:id="kpiTotalEquipment" text="—" styleClass="kpi-value"/>
+            <Label fx:id="kpiOperational" text="— operational" styleClass="kpi-sub"/>
+        </VBox>
+
+        <!-- Tile 2: Maintenance Jobs -->
+        <VBox styleClass="kpi-tile" HBox.hgrow="ALWAYS">
+            <Label text="Maintenance Jobs" styleClass="kpi-label"/>
+            <Label fx:id="kpiMaintenanceJobs" text="—" styleClass="kpi-value"/>
+            <Label fx:id="kpiBreakdowns" text="— breakdowns" styleClass="kpi-sub kpi-sub-warn"/>
+        </VBox>
+
+        <!-- Tile 3: Parts Spend -->
+        <VBox styleClass="kpi-tile" HBox.hgrow="ALWAYS">
+            <Label text="Total Parts Spend" styleClass="kpi-label"/>
+            <Label fx:id="kpiPartsSpend" text="—" styleClass="kpi-value"/>
+            <Label fx:id="kpiLowStockCount" text="— low stock" styleClass="kpi-sub kpi-sub-danger"/>
+        </VBox>
+
+        <!-- Tile 4: Alerts -->
+        <VBox styleClass="kpi-tile-danger" HBox.hgrow="ALWAYS">
+            <Label text="Active Alerts" styleClass="kpi-label"/>
+            <Label fx:id="kpiAlerts" text="—" styleClass="kpi-value-danger"/>
+            <Label fx:id="kpiAlertsBreakdown" text="overdue + low stock" styleClass="kpi-sub"/>
+        </VBox>
+
+    </HBox>
+
+    <!-- ── MIDDLE ROW: ALERTS + COST PER ASSET ────────────────────── -->
+    <HBox spacing="16" VBox.vgrow="ALWAYS">
+
+        <!-- Alert Feed -->
+        <VBox styleClass="dash-card" HBox.hgrow="ALWAYS" spacing="10">
+            <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+            <Label text="⚠  Active Alerts" styleClass="card-title"/>
+            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="alert-scroll">
+                <VBox fx:id="alertFeed" spacing="6">
+                    <padding><Insets top="4" right="4" bottom="4" left="4"/></padding>
+                </VBox>
+            </ScrollPane>
+        </VBox>
+
+        <!-- Cost Per Asset -->
+        <VBox styleClass="dash-card" prefWidth="300" spacing="10">
+            <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+            <Label text="₹  Cost Per Asset (Top 5)" styleClass="card-title"/>
+            <VBox fx:id="costFeed" spacing="8" VBox.vgrow="ALWAYS">
+                <padding><Insets top="4" right="0" bottom="4" left="0"/></padding>
+            </VBox>
+        </VBox>
+
+    </HBox>
+
+    <!-- ── RECENT ACTIVITY FEED ───────────────────────────────────── -->
+    <VBox styleClass="dash-card" spacing="10">
+        <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+        <Label text="🕐  Recent Activity" styleClass="card-title"/>
+        <TableView fx:id="activityTable" prefHeight="220" styleClass="main-table">
+            <columns>
+                <TableColumn fx:id="colType"    text="Type"      prefWidth="120"/>
+                <TableColumn fx:id="colDate"    text="Date"      prefWidth="110"/>
+                <TableColumn fx:id="colSubject" text="Equipment / Part" prefWidth="200"/>
+                <TableColumn fx:id="colDetail"  text="Detail"    prefWidth="320"/>
+                <TableColumn fx:id="colActor"   text="By"        prefWidth="120"/>
+            </columns>
+            <placeholder><Label text="No recent activity."/></placeholder>
+        </TableView>
+    </VBox>
+
+</VBox>
