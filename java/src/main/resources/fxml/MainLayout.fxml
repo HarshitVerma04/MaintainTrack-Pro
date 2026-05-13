@@ -29,6 +29,7 @@
 
             <Separator styleClass="sidebar-sep"/>
 
+            <Button fx:id="btnActivity"    text="🕐  Activity"    styleClass="nav-btn" maxWidth="Infinity" onAction="#showActivity"/>
             <Button fx:id="btnMaintenance" text="🔧  Maintenance" styleClass="nav-btn" maxWidth="Infinity" onAction="#showMaintenance"/>
             <Button fx:id="btnBreakdown"   text="⚠️  Breakdowns"  styleClass="nav-btn" maxWidth="Infinity" onAction="#showBreakdown"/>
             <Button fx:id="btnIssues"      text="📦  Issues"       styleClass="nav-btn" maxWidth="Infinity" onAction="#showIssues"/>

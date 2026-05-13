@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.maintaintrack.controllers.ActivityController"
+      spacing="16" styleClass="screen-root">
+
+    <padding><Insets top="24" right="28" bottom="24" left="28"/></padding>
+
+    <!-- HEADER -->
+    <HBox alignment="CENTER_LEFT" spacing="12">
+        <Label text="Activity Feed" styleClass="screen-title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label fx:id="totalLabel" text="" styleClass="form-label"/>
+    </HBox>
+
+    <!-- FILTER BAR -->
+    <HBox spacing="12" alignment="CENTER_LEFT" styleClass="form-panel">
+        <padding><Insets top="12" right="16" bottom="12" left="16"/></padding>
+
+        <Label text="Type:" styleClass="form-label"/>
+        <ComboBox fx:id="filterType" prefWidth="160"/>
+
+        <Label text="From:" styleClass="form-label"/>
+        <DatePicker fx:id="filterFrom" prefWidth="150"/>
+
+        <Label text="To:" styleClass="form-label"/>
+        <DatePicker fx:id="filterTo" prefWidth="150"/>
+
+        <Label text="Search:" styleClass="form-label"/>
+        <TextField fx:id="filterSearch" promptText="equipment or detail..."
+                   prefWidth="200" styleClass="search-field"/>
+
+        <Button text="Apply" styleClass="btn-primary" onAction="#onApply"/>
+        <Button text="Reset" styleClass="btn-secondary" onAction="#onReset"/>
+    </HBox>
+
+    <!-- ACTIVITY TABLE -->
+    <TableView fx:id="activityTable" VBox.vgrow="ALWAYS" styleClass="main-table">
+        <columns>
+            <TableColumn fx:id="colType"    text="Type"           prefWidth="130"/>
+            <TableColumn fx:id="colDate"    text="Date"           prefWidth="115"/>
+            <TableColumn fx:id="colSubject" text="Equipment"      prefWidth="210"/>
+            <TableColumn fx:id="colDetail"  text="Detail / Notes" prefWidth="360"/>
+            <TableColumn fx:id="colActor"   text="By"             prefWidth="130"/>
+        </columns>
+        <placeholder>
+            <Label text="No activity found for the selected filters."/>
+        </placeholder>
+    </TableView>
+
+</VBox>
