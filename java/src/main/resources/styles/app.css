@@ -264,3 +264,20 @@
 .alert-scroll .viewport {
     -fx-background-color: transparent;
 }
+
+/* ── KPI Tabs ─────────────────────────────────────────────── */
+.kpi-tabs .tab-header-area .tab {
+    -fx-background-color: #f4f6fa;
+    -fx-border-color: #d0d7e3;
+    -fx-padding: 6 16 6 16;
+}
+
+.kpi-tabs .tab-header-area .tab:selected {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #2e86de;
+}
+
+.kpi-tabs .tab-content-area {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #d0d7e3;
+}

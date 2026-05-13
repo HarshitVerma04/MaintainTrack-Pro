@@ -28,6 +28,7 @@ public class MainLayoutController {
     @FXML private void showEquipment()   { loadView("/fxml/Equipment.fxml"); }
     @FXML private void showParts()       { loadView("/fxml/Parts.fxml"); }
     @FXML private void showSuppliers()   { loadView("/fxml/Suppliers.fxml"); }
+    @FXML private void showKpis()      { loadView("/fxml/Kpis.fxml"); }
     @FXML private void showMaintenance() { loadView("/fxml/Maintenance.fxml"); }
     @FXML private void showBreakdown()   { loadView("/fxml/Breakdown.fxml"); }
     @FXML private void showIssues()      { loadView("/fxml/Issues.fxml"); }

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.maintaintrack.controllers.KpisController"
+      spacing="16" styleClass="screen-root">
+
+    <padding><Insets top="24" right="28" bottom="24" left="28"/></padding>
+
+    <!-- HEADER -->
+    <HBox alignment="CENTER_LEFT" spacing="12">
+        <Label text="KPIs &amp; Analytics" styleClass="screen-title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label fx:id="periodLabel"
+               text="Analysis window: last 90 days"
+               styleClass="form-label"/>
+        <Button text="↻  Refresh" styleClass="btn-secondary" onAction="#onRefresh"/>
+    </HBox>
+
+    <!-- FLEET SUMMARY STRIP -->
+    <HBox spacing="16">
+        <VBox styleClass="kpi-tile" HBox.hgrow="ALWAYS">
+            <Label text="Fleet Avg Uptime" styleClass="kpi-label"/>
+            <Label fx:id="kpiFleetUptime" text="—" styleClass="kpi-value"/>
+            <Label text="last 90 days" styleClass="kpi-sub"/>
+        </VBox>
+        <VBox styleClass="kpi-tile" HBox.hgrow="ALWAYS">
+            <Label text="Machines ≥ 95% Uptime" styleClass="kpi-label"/>
+            <Label fx:id="kpiGoodMachines" text="—" styleClass="kpi-value"/>
+            <Label text="performing well" styleClass="kpi-sub"/>
+        </VBox>
+        <VBox styleClass="kpi-tile-danger" HBox.hgrow="ALWAYS">
+            <Label text="Machines &lt; 80% Uptime" styleClass="kpi-label"/>
+            <Label fx:id="kpiBadMachines" text="—" styleClass="kpi-value-danger"/>
+            <Label text="need attention" styleClass="kpi-sub"/>
+        </VBox>
+        <VBox styleClass="kpi-tile" HBox.hgrow="ALWAYS">
+            <Label text="Total Parts Spend" styleClass="kpi-label"/>
+            <Label fx:id="kpiTotalSpend" text="—" styleClass="kpi-value"/>
+            <Label text="last 90 days" styleClass="kpi-sub"/>
+        </VBox>
+    </HBox>
+
+    <!-- TAB PANE: one tab per KPI -->
+    <TabPane fx:id="tabPane" VBox.vgrow="ALWAYS" tabClosingPolicy="UNAVAILABLE"
+             styleClass="kpi-tabs">
+
+        <!-- TAB 1: UPTIME % -->
+        <Tab text="⏱  Uptime %">
+            <VBox spacing="12" style="-fx-padding: 16;">
+                <Label text="Equipment Uptime — Last 90 Days"
+                       style="-fx-font-size:13px; -fx-font-weight:bold; -fx-text-fill:#1b3a6b;"/>
+                <Label text="Assumes 2 days average downtime per breakdown incident."
+                       styleClass="form-label"/>
+                <TableView fx:id="uptimeTable" VBox.vgrow="ALWAYS" styleClass="main-table">
+                    <columns>
+                        <TableColumn fx:id="uColName"       text="Equipment"       prefWidth="220"/>
+                        <TableColumn fx:id="uColLocation"   text="Location"        prefWidth="140"/>
+                        <TableColumn fx:id="uColStatus"     text="Status"          prefWidth="140"/>
+                        <TableColumn fx:id="uColBreakdowns" text="Breakdowns"      prefWidth="100"/>
+                        <TableColumn fx:id="uColDowntime"   text="Est. Downtime"   prefWidth="120"/>
+                        <TableColumn fx:id="uColUptime"     text="Uptime %"        prefWidth="120"/>
+                        <TableColumn fx:id="uColBar"        text="Visual"          prefWidth="200"/>
+                    </columns>
+                    <placeholder>
+                        <Label text="No equipment found."/>
+                    </placeholder>
+                </TableView>
+            </VBox>
+        </Tab>
+
+        <!-- TAB 2: MTBF -->
+        <Tab text="🔁  MTBF">
+            <VBox spacing="12" style="-fx-padding: 16;">
+                <Label text="Mean Time Between Failures — Last 90 Days"
+                       style="-fx-font-size:13px; -fx-font-weight:bold; -fx-text-fill:#1b3a6b;"/>
+                <Label text="MTBF = 90 days / number of breakdowns. Higher is better."
+                       styleClass="form-label"/>
+                <TableView fx:id="mtbfTable" VBox.vgrow="ALWAYS" styleClass="main-table">
+                    <columns>
+                        <TableColumn fx:id="mColName"         text="Equipment"        prefWidth="220"/>
+                        <TableColumn fx:id="mColLocation"     text="Location"         prefWidth="140"/>
+                        <TableColumn fx:id="mColBreakdowns"   text="Breakdowns"       prefWidth="100"/>
+                        <TableColumn fx:id="mColMaintenance"  text="PM Jobs"          prefWidth="90"/>
+                        <TableColumn fx:id="mColMtbf"         text="MTBF (days)"      prefWidth="120"/>
+                        <TableColumn fx:id="mColRating"       text="Rating"           prefWidth="100"/>
+                    </columns>
+                    <placeholder>
+                        <Label text="No equipment found."/>
+                    </placeholder>
+                </TableView>
+            </VBox>
+        </Tab>
+
+        <!-- TAB 3: COST PER ASSET -->
+        <Tab text="₹  Cost Per Asset">
+            <VBox spacing="12" style="-fx-padding: 16;">
+                <Label text="Parts Cost Per Equipment — Last 90 Days"
+                       style="-fx-font-size:13px; -fx-font-weight:bold; -fx-text-fill:#1b3a6b;"/>
+                <Label text="Sum of (qty × unit_cost) for all issued parts per machine."
+                       styleClass="form-label"/>
+                <TableView fx:id="costTable" VBox.vgrow="ALWAYS" styleClass="main-table">
+                    <columns>
+                        <TableColumn fx:id="cColName"     text="Equipment"      prefWidth="220"/>
+                        <TableColumn fx:id="cColLocation" text="Location"       prefWidth="140"/>
+                        <TableColumn fx:id="cColIssues"   text="Issues"         prefWidth="80"/>
+                        <TableColumn fx:id="cColCost"     text="Total Cost (₹)" prefWidth="140"/>
+                        <TableColumn fx:id="cColPerDay"   text="Cost / Day (₹)" prefWidth="130"/>
+                        <TableColumn fx:id="cColBar"      text="Visual"         prefWidth="220"/>
+                    </columns>
+                    <placeholder>
+                        <Label text="No cost data found. Issue some parts first."/>
+                    </placeholder>
+                </TableView>
+            </VBox>
+        </Tab>
+
+    </TabPane>
+
+</VBox>
