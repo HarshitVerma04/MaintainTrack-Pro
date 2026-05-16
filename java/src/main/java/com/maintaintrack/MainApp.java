@@ -1,5 +1,6 @@
 package com.maintaintrack;
 
+import com.maintaintrack.controllers.MainLayoutController;
 import com.maintaintrack.dao.DatabaseInitializer;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -47,6 +48,11 @@ public class MainApp extends Application {
         primaryStage.setMinWidth(MIN_WIDTH);
         primaryStage.setMinHeight(MIN_HEIGHT);
         primaryStage.setScene(scene);
+
+        // ── Wire window-close → stop the alert polling thread ─────────
+        MainLayoutController layoutCtrl = loader.getController();
+        primaryStage.setOnCloseRequest(layoutCtrl::onWindowClose);
+
         primaryStage.show();
     }
 

@@ -56,12 +56,19 @@ public class EquipmentDAO {
         }
     }
 
-    // ── UPDATE next_maintenance_date only (used by Phase 2 scheduler) ─────
+    // ── UPDATE next_maintenance_date only (own connection) ────────────────
 
     public void updateNextMaintenanceDate(int equipmentId, LocalDate date) throws SQLException {
+        try (Connection conn = DBConnection.getConnection()) {
+            updateNextMaintenanceDate(equipmentId, date, conn);
+        }
+    }
+
+    // ── UPDATE next_maintenance_date (caller-supplied connection) ─────────
+
+    public void updateNextMaintenanceDate(int equipmentId, LocalDate date, Connection conn) throws SQLException {
         String sql = "UPDATE EQUIPMENT SET next_maintenance_date = ? WHERE id = ?;";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, date.toString());
             ps.setInt(2, equipmentId);
             ps.executeUpdate();

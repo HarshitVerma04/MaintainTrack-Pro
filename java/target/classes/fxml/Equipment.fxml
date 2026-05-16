@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.maintaintrack.controllers.EquipmentController"
+      spacing="16" styleClass="screen-root">
+
+    <padding><Insets top="24" right="28" bottom="24" left="28"/></padding>
+
+    <!-- ── HEADER ───────────────────────────────────────────────────── -->
+    <HBox alignment="CENTER_LEFT" spacing="12">
+        <Label text="Equipment" styleClass="screen-title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <TextField fx:id="searchField" promptText="Search by name or location…"
+                   prefWidth="240" styleClass="search-field"
+                   onKeyReleased="#onSearch"/>
+        <Button text="＋  Add Equipment" styleClass="btn-primary" onAction="#onAdd"/>
+    </HBox>
+
+    <!-- ── TABLE ────────────────────────────────────────────────────── -->
+    <TableView fx:id="equipmentTable" VBox.vgrow="ALWAYS" styleClass="main-table">
+        <columns>
+            <TableColumn fx:id="colId"       text="ID"           prefWidth="50"/>
+            <TableColumn fx:id="colName"     text="Name"         prefWidth="220"/>
+            <TableColumn fx:id="colLocation" text="Location"     prefWidth="160"/>
+            <TableColumn fx:id="colStatus"   text="Status"       prefWidth="140"/>
+            <TableColumn fx:id="colNextDate" text="Next Due"     prefWidth="130"/>
+            <TableColumn fx:id="colInterval" text="Interval (d)" prefWidth="110"/>
+        </columns>
+        <placeholder>
+            <Label text="No equipment found. Click '＋ Add Equipment' to get started."/>
+        </placeholder>
+    </TableView>
+
+    <!-- ── FORM PANEL ───────────────────────────────────────────────── -->
+    <VBox fx:id="formPanel" styleClass="form-panel" spacing="12" visible="false" managed="false">
+        <Label fx:id="formTitle" text="Add Equipment" styleClass="form-title"/>
+
+        <GridPane hgap="16" vgap="10">
+
+            <!-- Row 0: Name + Location -->
+            <Label text="Name *" GridPane.rowIndex="0" GridPane.columnIndex="0" styleClass="form-label"/>
+            <TextField fx:id="fieldName" promptText="e.g. CNC Machine A1"
+                       GridPane.rowIndex="0" GridPane.columnIndex="1" prefWidth="260"/>
+
+            <Label text="Location" GridPane.rowIndex="0" GridPane.columnIndex="2" styleClass="form-label"/>
+            <TextField fx:id="fieldLocation" promptText="e.g. Shop Floor 1"
+                       GridPane.rowIndex="0" GridPane.columnIndex="3" prefWidth="200"/>
+
+            <!-- Row 1: Status + Interval -->
+            <Label text="Status" GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="form-label"/>
+            <ComboBox fx:id="fieldStatus" GridPane.rowIndex="1" GridPane.columnIndex="1" prefWidth="260"/>
+
+            <Label text="Interval (days) *" GridPane.rowIndex="1" GridPane.columnIndex="2" styleClass="form-label"/>
+            <TextField fx:id="fieldInterval" promptText="e.g. 30"
+                       GridPane.rowIndex="1" GridPane.columnIndex="3" prefWidth="200"/>
+
+            <!-- Row 2: Next Maintenance Date -->
+            <Label text="Next Due Date" GridPane.rowIndex="2" GridPane.columnIndex="0" styleClass="form-label"/>
+            <DatePicker fx:id="fieldNextDate" GridPane.rowIndex="2" GridPane.columnIndex="1" prefWidth="260"/>
+
+        </GridPane>
+
+        <!-- Form action buttons -->
+        <HBox spacing="10">
+            <Button fx:id="btnSave"   text="Save"   styleClass="btn-primary" onAction="#onSave"/>
+            <Button fx:id="btnCancel" text="Cancel"  styleClass="btn-secondary" onAction="#onCancel"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="btnDelete" text="Delete" styleClass="btn-danger" onAction="#onDelete"/>
+        </HBox>
+
+        <Label fx:id="errorLabel" styleClass="error-label" text="" wrapText="true"/>
+    </VBox>
+
+</VBox>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.maintaintrack.controllers.SupplierController"
+      spacing="16" styleClass="screen-root">
+
+    <padding><Insets top="24" right="28" bottom="24" left="28"/></padding>
+
+    <!-- HEADER -->
+    <HBox alignment="CENTER_LEFT" spacing="12">
+        <Label text="Suppliers" styleClass="screen-title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <TextField fx:id="searchField" promptText="Search by name or contact..."
+                   prefWidth="240" styleClass="search-field"
+                   onKeyReleased="#onSearch"/>
+        <Button text="+ Add Supplier" styleClass="btn-primary" onAction="#onAdd"/>
+    </HBox>
+
+    <!-- TABLE -->
+    <TableView fx:id="supplierTable" VBox.vgrow="ALWAYS" styleClass="main-table">
+        <columns>
+            <TableColumn fx:id="colId"      text="ID"           prefWidth="60"/>
+            <TableColumn fx:id="colName"    text="Supplier Name" prefWidth="240"/>
+            <TableColumn fx:id="colContact" text="Contact Person" prefWidth="200"/>
+            <TableColumn fx:id="colPhone"   text="Phone"         prefWidth="160"/>
+            <TableColumn fx:id="colEmail"   text="Email"         prefWidth="260"/>
+        </columns>
+        <placeholder>
+            <Label text="No suppliers found. Click Add Supplier to get started."/>
+        </placeholder>
+    </TableView>
+
+    <!-- FORM PANEL -->
+    <VBox fx:id="formPanel" styleClass="form-panel" spacing="12"
+          visible="false" managed="false">
+
+        <Label fx:id="formTitle" text="Add Supplier" styleClass="form-title"/>
+
+        <GridPane hgap="16" vgap="10">
+
+            <!-- Row 0: Name + Contact -->
+            <Label text="Supplier Name *" GridPane.rowIndex="0" GridPane.columnIndex="0" styleClass="form-label"/>
+            <TextField fx:id="fieldName" promptText="e.g. FastParts Ltd"
+                       GridPane.rowIndex="0" GridPane.columnIndex="1" prefWidth="260"/>
+
+            <Label text="Contact Person" GridPane.rowIndex="0" GridPane.columnIndex="2" styleClass="form-label"/>
+            <TextField fx:id="fieldContact" promptText="e.g. Rahul Sharma"
+                       GridPane.rowIndex="0" GridPane.columnIndex="3" prefWidth="220"/>
+
+            <!-- Row 1: Phone + Email -->
+            <Label text="Phone" GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="form-label"/>
+            <TextField fx:id="fieldPhone" promptText="e.g. +91-9876543210"
+                       GridPane.rowIndex="1" GridPane.columnIndex="1" prefWidth="260"/>
+
+            <Label text="Email" GridPane.rowIndex="1" GridPane.columnIndex="2" styleClass="form-label"/>
+            <TextField fx:id="fieldEmail" promptText="e.g. rahul@fastparts.in"
+                       GridPane.rowIndex="1" GridPane.columnIndex="3" prefWidth="220"/>
+
+        </GridPane>
+
+        <!-- Form buttons -->
+        <HBox spacing="10">
+            <Button text="Save"   styleClass="btn-primary"   onAction="#onSave"/>
+            <Button text="Cancel" styleClass="btn-secondary" onAction="#onCancel"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="btnDelete" text="Delete" styleClass="btn-danger" onAction="#onDelete"/>
+        </HBox>
+
+        <Label fx:id="errorLabel" styleClass="error-label" text="" wrapText="true"/>
+    </VBox>
+
+</VBox>
