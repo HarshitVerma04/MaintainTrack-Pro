@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.maintaintrack.controllers.ReportsController"
+      spacing="16" styleClass="screen-root">
+
+    <padding><Insets top="24" right="28" bottom="24" left="28"/></padding>
+
+    <!-- HEADER -->
+    <HBox alignment="CENTER_LEFT" spacing="12">
+        <Label text="Reports &amp; Exports" styleClass="screen-title"/>
+    </HBox>
+
+    <!-- PDF REPORT CARD -->
+    <VBox styleClass="dash-card" spacing="12">
+        <padding><Insets top="20" right="24" bottom="20" left="24"/></padding>
+
+        <Label text="📄  Maintenance Report (PDF)" styleClass="card-title"/>
+        <Label text="Generates a full PDF report for one equipment — maintenance history, breakdown incidents, and parts cost breakdown."
+               styleClass="form-label" wrapText="true"/>
+
+        <HBox spacing="12" alignment="CENTER_LEFT">
+            <Label text="Select Equipment:" styleClass="form-label"/>
+            <ComboBox fx:id="pdfEquipmentPicker" prefWidth="300"/>
+            <Button text="Generate PDF" styleClass="btn-primary"
+                    onAction="#onGeneratePdf"/>
+        </HBox>
+
+        <HBox spacing="8" alignment="CENTER_LEFT">
+            <Label fx:id="pdfStatusLabel" text="" wrapText="true"
+                   style="-fx-font-size:12px;" maxWidth="600"/>
+        </HBox>
+    </VBox>
+
+    <!-- EXCEL EXPORT CARD -->
+    <VBox styleClass="dash-card" spacing="12">
+        <padding><Insets top="20" right="24" bottom="20" left="24"/></padding>
+
+        <Label text="📊  Parts Usage Export (Excel)" styleClass="card-title"/>
+        <Label text="Exports all parts issue and return transactions to an Excel workbook — one sheet per equipment, plus a summary sheet."
+               styleClass="form-label" wrapText="true"/>
+
+        <HBox spacing="12" alignment="CENTER_LEFT">
+            <Button text="Export to Excel" styleClass="btn-primary"
+                    onAction="#onExportExcel"/>
+        </HBox>
+
+        <HBox spacing="8" alignment="CENTER_LEFT">
+            <Label fx:id="excelStatusLabel" text="" wrapText="true"
+                   style="-fx-font-size:12px;" maxWidth="600"/>
+        </HBox>
+    </VBox>
+
+    <!-- SPACER -->
+    <Region VBox.vgrow="ALWAYS"/>
+
+    <!-- HINT -->
+    <Label text="Reports are saved to the reports/ folder in your project directory."
+           styleClass="form-label"/>
+
+</VBox>
