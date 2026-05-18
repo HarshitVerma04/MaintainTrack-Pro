@@ -1,6 +1,113 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<StackPane xmlns:fx="http://javafx.com/fxml" styleClass="screen-root">
-    <Label text="Issues — coming soon" styleClass="placeholder-label"/>
-</StackPane>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.maintaintrack.controllers.IssueController"
+      spacing="14" styleClass="screen-root">
+
+    <padding><Insets top="24" right="28" bottom="24" left="28"/></padding>
+
+    <!-- ── HEADER ─────────────────────────────────────────────────── -->
+    <HBox alignment="CENTER_LEFT" spacing="12">
+        <Label text="Issues &amp; Alerts" styleClass="screen-title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label fx:id="overdueBadge"  text="" styleClass="badge-danger" visible="false" managed="false"/>
+        <Label fx:id="lowStockBadge" text="" styleClass="badge-danger" visible="false" managed="false"/>
+        <Button text="+ Issue / Return" styleClass="btn-primary" onAction="#onAdd"/>
+    </HBox>
+
+    <!-- ── MAIN SPLIT: left = transactions table, right = alert feed ── -->
+    <HBox VBox.vgrow="ALWAYS" spacing="14">
+
+        <!-- LEFT: Issue/Return transactions -->
+        <VBox HBox.hgrow="ALWAYS" spacing="10">
+
+            <!-- Issue/Return form -->
+            <VBox fx:id="formPanel" styleClass="form-panel" spacing="12"
+                  visible="false" managed="false">
+
+                <Label text="Record Part Issue / Return" styleClass="form-title"/>
+
+                <GridPane hgap="16" vgap="10">
+
+                    <!-- Row 0: Part + Equipment -->
+                    <Label text="Part *" GridPane.rowIndex="0" GridPane.columnIndex="0" styleClass="form-label"/>
+                    <ComboBox fx:id="fieldPart" GridPane.rowIndex="0" GridPane.columnIndex="1" prefWidth="240"/>
+
+                    <Label text="Equipment *" GridPane.rowIndex="0" GridPane.columnIndex="2" styleClass="form-label"/>
+                    <ComboBox fx:id="fieldEquipment" GridPane.rowIndex="0" GridPane.columnIndex="3" prefWidth="220"/>
+
+                    <!-- Row 1: Qty + Issued By -->
+                    <Label text="Quantity *" GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="form-label"/>
+                    <TextField fx:id="fieldQty" promptText="e.g. 2"
+                               GridPane.rowIndex="1" GridPane.columnIndex="1" prefWidth="240"/>
+
+                    <Label text="Issued By" GridPane.rowIndex="1" GridPane.columnIndex="2" styleClass="form-label"/>
+                    <TextField fx:id="fieldIssuedBy" promptText="e.g. Harshit"
+                               GridPane.rowIndex="1" GridPane.columnIndex="3" prefWidth="220"/>
+
+                    <!-- Row 2: Date + Type -->
+                    <Label text="Date *" GridPane.rowIndex="2" GridPane.columnIndex="0" styleClass="form-label"/>
+                    <DatePicker fx:id="fieldIssuedOn" GridPane.rowIndex="2" GridPane.columnIndex="1" prefWidth="240"/>
+
+                    <Label text="Type *" GridPane.rowIndex="2" GridPane.columnIndex="2" styleClass="form-label"/>
+                    <HBox GridPane.rowIndex="2" GridPane.columnIndex="3" spacing="16" alignment="CENTER_LEFT">
+                        <RadioButton fx:id="radioIssue"  text="Issue"
+                                     toggleGroup="$typeToggleGroup" selected="true"/>
+                        <RadioButton fx:id="radioReturn" text="Return"
+                                     toggleGroup="$typeToggleGroup"/>
+                    </HBox>
+
+                </GridPane>
+
+                <!-- Stock preview -->
+                <HBox alignment="CENTER_LEFT" spacing="8">
+                    <Label text="Current stock:" styleClass="form-label"/>
+                    <Label fx:id="stockPreview" text="—" styleClass="form-label"/>
+                </HBox>
+
+                <HBox spacing="10">
+                    <Button text="Save"   styleClass="btn-primary"   onAction="#onSave"/>
+                    <Button text="Cancel" styleClass="btn-secondary" onAction="#onCancel"/>
+                </HBox>
+
+                <Label fx:id="errorLabel" styleClass="error-label" text="" wrapText="true"/>
+            </VBox>
+
+            <!-- Transactions table -->
+            <TableView fx:id="issueTable" VBox.vgrow="ALWAYS" styleClass="main-table">
+                <columns>
+                    <TableColumn fx:id="colId"        text="ID"        prefWidth="50"/>
+                    <TableColumn fx:id="colPart"      text="Part"      prefWidth="200"/>
+                    <TableColumn fx:id="colEquipment" text="Equipment" prefWidth="180"/>
+                    <TableColumn fx:id="colIssuedOn"  text="Date"      prefWidth="110"/>
+                    <TableColumn fx:id="colQty"       text="Qty"       prefWidth="60"/>
+                    <TableColumn fx:id="colIssuedBy"  text="By"        prefWidth="110"/>
+                    <TableColumn fx:id="colType"      text="Type"      prefWidth="80"/>
+                </columns>
+                <placeholder>
+                    <Label text="No transactions yet. Click Issue / Return to record one."/>
+                </placeholder>
+            </TableView>
+        </VBox>
+
+        <!-- RIGHT: Alert feed (Day 16) -->
+        <VBox fx:id="alertFeedPanel" prefWidth="320" spacing="10" styleClass="form-panel">
+            <Label text="Active Alerts" styleClass="form-title"/>
+            <Label fx:id="alertCountLabel" text="Loading…" styleClass="form-label"/>
+            <Separator/>
+            <ListView fx:id="alertListView" VBox.vgrow="ALWAYS" styleClass="alert-list"
+                      fixedCellSize="64"/>
+        </VBox>
+
+    </HBox>
+
+    <!-- Declare the ToggleGroup here so FXML can reference it above -->
+    <fx:define>
+        <ToggleGroup fx:id="typeToggleGroup"/>
+    </fx:define>
+
+</VBox>

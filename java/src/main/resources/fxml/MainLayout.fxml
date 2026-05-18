@@ -11,7 +11,7 @@
 
     <!-- ── SIDEBAR ─────────────────────────────────────────────────── -->
     <left>
-        <VBox styleClass="sidebar" prefWidth="200" spacing="4">
+        <VBox styleClass="sidebar" prefWidth="210" spacing="4">
             <padding><Insets top="24" right="12" bottom="24" left="12"/></padding>
 
             <!-- App title -->
@@ -21,6 +21,7 @@
             <Separator styleClass="sidebar-sep"/>
 
             <!-- Nav buttons -->
+
             <Button fx:id="btnDashboard"  text="📊  Dashboard"  styleClass="nav-btn" maxWidth="Infinity" onAction="#showDashboard"/>
             <Button fx:id="btnEquipment"  text="⚙️  Equipment"  styleClass="nav-btn" maxWidth="Infinity" onAction="#showEquipment"/>
             <Button fx:id="btnParts"      text="🔩  Parts"       styleClass="nav-btn" maxWidth="Infinity" onAction="#showParts"/>
@@ -36,6 +37,28 @@
             <Button fx:id="btnBreakdown"   text="⚠️  Breakdowns"  styleClass="nav-btn" maxWidth="Infinity" onAction="#showBreakdown"/>
             <Button fx:id="btnIssues"      text="📦  Issues"       styleClass="nav-btn" maxWidth="Infinity" onAction="#showIssues"/>
 
+
+            <Separator styleClass="sidebar-sep"/>
+
+            <!-- Maintenance nav + overdue badge (Day 16) -->
+            <HBox alignment="CENTER_LEFT" spacing="4" maxWidth="Infinity">
+                <Button fx:id="btnMaintenance" text="🔧  Maintenance" styleClass="nav-btn"
+                        HBox.hgrow="ALWAYS" onAction="#showMaintenance"/>
+                <Label fx:id="sidebarOverdueBadge" styleClass="sidebar-alert-badge"
+                       visible="false" managed="false"/>
+            </HBox>
+
+            <Button fx:id="btnBreakdown" text="⚠️  Breakdowns" styleClass="nav-btn" maxWidth="Infinity" onAction="#showBreakdown"/>
+
+            <!-- Issues nav + low-stock badge (Day 16) -->
+            <HBox alignment="CENTER_LEFT" spacing="4" maxWidth="Infinity">
+                <Button fx:id="btnIssues" text="📦  Issues &amp; Alerts" styleClass="nav-btn"
+                        HBox.hgrow="ALWAYS" onAction="#showIssues"/>
+                <Label fx:id="sidebarLowStockBadge" styleClass="sidebar-alert-badge"
+                       visible="false" managed="false"/>
+            </HBox>
+
+
             <!-- Spacer pushes version to bottom -->
             <Region VBox.vgrow="ALWAYS"/>
             <Label text="v1.0.0" styleClass="sidebar-version"/>
@@ -44,9 +67,7 @@
 
     <!-- ── MAIN CONTENT AREA ────────────────────────────────────────── -->
     <center>
-        <StackPane fx:id="contentArea" styleClass="content-area">
-            <!-- Screens are swapped in here by MainLayoutController -->
-        </StackPane>
+        <StackPane fx:id="contentArea" styleClass="content-area"/>
     </center>
 
 </BorderPane>

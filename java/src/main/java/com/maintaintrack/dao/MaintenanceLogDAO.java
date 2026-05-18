@@ -13,15 +13,22 @@ import java.util.List;
  */
 public class MaintenanceLogDAO {
 
-    // ── INSERT ────────────────────────────────────────────────────────────
+    // ── INSERT (own connection) ───────────────────────────────────────────
 
     public void insert(MaintenanceLog log) throws SQLException {
+        try (Connection conn = DBConnection.getConnection()) {
+            insert(log, conn);
+        }
+    }
+
+    // ── INSERT (caller-supplied connection — for transaction support) ─────
+
+    public void insert(MaintenanceLog log, Connection conn) throws SQLException {
         String sql = """
                 INSERT INTO MAINTENANCE_LOG (equipment_id, done_on, notes, done_by)
                 VALUES (?, ?, ?, ?);
                 """;
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, log.getEquipmentId());
             ps.setString(2, log.getDoneOn().toString());
             ps.setString(3, log.getNotes());

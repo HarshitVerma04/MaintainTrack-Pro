@@ -1,5 +1,6 @@
 package com.maintaintrack.services;
 
+import com.maintaintrack.dao.DBConnection;
 import com.maintaintrack.dao.EquipmentDAO;
 import com.maintaintrack.dao.MaintenanceLogDAO;
 import com.maintaintrack.models.Equipment;
@@ -41,16 +42,32 @@ public class MaintenanceLogService {
         if (log.getDoneBy() == null || log.getDoneBy().isBlank())
             throw new IllegalArgumentException("'Done by' is required.");
 
-        // ── Insert the maintenance log ────────────────────────────────────
-        logDAO.insert(log);
-
-        // ── Recalculate next_maintenance_date ─────────────────────────────
+        // ── Transactional write: insert log + update next due date ────────
+        // Both writes share one Connection; if either fails, both roll back.
         Equipment equipment = equipmentDAO.findById(log.getEquipmentId());
-        if (equipment != null) {
-            LocalDate nextDue = log.getDoneOn().plusDays(equipment.getIntervalDays());
-            equipmentDAO.updateNextMaintenanceDate(log.getEquipmentId(), nextDue);
-            System.out.println("[Maintenance] Next due for '"
-                    + equipment.getName() + "' → " + nextDue);
+        LocalDate nextDue   = equipment != null
+                ? log.getDoneOn().plusDays(equipment.getIntervalDays())
+                : null;
+
+        Connection conn = DBConnection.getConnection();
+        try {
+            conn.setAutoCommit(false);
+            conn.createStatement().execute("PRAGMA foreign_keys = ON;");
+
+            logDAO.insert(log, conn);
+            if (nextDue != null) {
+                equipmentDAO.updateNextMaintenanceDate(log.getEquipmentId(), nextDue, conn);
+                System.out.println("[Maintenance] Next due for '"
+                        + equipment.getName() + "' → " + nextDue);
+            }
+
+            conn.commit();
+        } catch (SQLException e) {
+            conn.rollback();
+            throw e;
+        } finally {
+            conn.setAutoCommit(true);
+            conn.close();
         }
     }
 
