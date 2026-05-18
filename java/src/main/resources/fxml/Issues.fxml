@@ -10,27 +10,23 @@
 
     <padding><Insets top="24" right="28" bottom="24" left="28"/></padding>
 
-    <!-- LEFT PANEL: Form + Transactions table -->
+    <!-- LEFT: Form + table -->
     <VBox spacing="16" HBox.hgrow="ALWAYS">
 
         <!-- Header -->
         <HBox alignment="CENTER_LEFT" spacing="12">
-            <Label text="Parts Issues &amp; Work Orders" styleClass="screen-title"/>
+            <Label text="Parts Issues and Work Orders" styleClass="screen-title"/>
             <Region HBox.hgrow="ALWAYS"/>
-            <Label fx:id="overdueBadge"  text="" styleClass="badge-danger"
-                   visible="false" managed="false"/>
-            <Label fx:id="lowStockBadge" text="" styleClass="badge-danger"
-                   visible="false" managed="false"/>
+            <Label fx:id="overdueBadge"  text="" styleClass="badge-danger" visible="false" managed="false"/>
+            <Label fx:id="lowStockBadge" text="" styleClass="badge-danger" visible="false" managed="false"/>
             <Button text="+ Issue / Return Part" styleClass="btn-primary" onAction="#onAdd"/>
         </HBox>
 
-        <!-- FORM PANEL -->
-        <VBox fx:id="formPanel" styleClass="form-panel" spacing="12"
-              visible="false" managed="false">
+        <!-- FORM -->
+        <VBox fx:id="formPanel" styleClass="form-panel" spacing="12" visible="false" managed="false">
 
             <Label text="Record Part Transaction" styleClass="form-title"/>
 
-            <!-- Issue / Return toggle -->
             <HBox spacing="16" alignment="CENTER_LEFT">
                 <Label text="Transaction:" styleClass="form-label"/>
                 <RadioButton fx:id="radioIssue"  text="Issue (out)"   selected="true"/>
@@ -39,21 +35,18 @@
 
             <GridPane hgap="16" vgap="10">
 
-                <!-- Row 0: Part + Stock preview -->
                 <Label text="Part *" GridPane.rowIndex="0" GridPane.columnIndex="0" styleClass="form-label"/>
                 <ComboBox fx:id="fieldPart" GridPane.rowIndex="0" GridPane.columnIndex="1" prefWidth="260"/>
                 <Label fx:id="stockPreview" text="--"
                        GridPane.rowIndex="0" GridPane.columnIndex="2"
                        GridPane.columnSpan="2" styleClass="form-label"/>
 
-                <!-- Row 1: Equipment + Date -->
                 <Label text="Equipment *" GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="form-label"/>
                 <ComboBox fx:id="fieldEquipment" GridPane.rowIndex="1" GridPane.columnIndex="1" prefWidth="260"/>
 
                 <Label text="Date *" GridPane.rowIndex="1" GridPane.columnIndex="2" styleClass="form-label"/>
                 <DatePicker fx:id="fieldIssuedOn" GridPane.rowIndex="1" GridPane.columnIndex="3" prefWidth="180"/>
 
-                <!-- Row 2: Qty + Issued By -->
                 <Label text="Qty *" GridPane.rowIndex="2" GridPane.columnIndex="0" styleClass="form-label"/>
                 <TextField fx:id="fieldQty" promptText="e.g. 2"
                            GridPane.rowIndex="2" GridPane.columnIndex="1" prefWidth="260"/>
@@ -62,27 +55,30 @@
                 <TextField fx:id="fieldIssuedBy" promptText="e.g. Harshit"
                            GridPane.rowIndex="2" GridPane.columnIndex="3" prefWidth="180"/>
 
-                <!-- Row 3: Breakdown link (Day 8 — Work Order) -->
-                <Label text="Link to Breakdown" GridPane.rowIndex="3" GridPane.columnIndex="0"
-                       styleClass="form-label"/>
+                <!-- Day 8: Breakdown link -->
+                <Label text="Link to Breakdown" GridPane.rowIndex="3" GridPane.columnIndex="0" styleClass="form-label"/>
                 <ComboBox fx:id="fieldBreakdown" GridPane.rowIndex="3" GridPane.columnIndex="1"
-                          prefWidth="260" promptText="Optional -- leave blank for standalone issue"/>
-                <Label text="Links this issue to a work order"
-                       GridPane.rowIndex="3" GridPane.columnIndex="2"
-                       GridPane.columnSpan="2"
-                       style="-fx-text-fill:#5c6b8a; -fx-font-size:11px;" wrapText="true"/>
+                          prefWidth="260" promptText="Optional"/>
+                <Label text="Links to a repair work order"
+                       GridPane.rowIndex="3" GridPane.columnIndex="2" GridPane.columnSpan="2"
+                       style="-fx-text-fill:#5c6b8a; -fx-font-size:11px;"/>
+
+                <!-- Day 9: Maintenance link -->
+                <Label text="Link to PM Job" GridPane.rowIndex="4" GridPane.columnIndex="0" styleClass="form-label"/>
+                <ComboBox fx:id="fieldMaintenance" GridPane.rowIndex="4" GridPane.columnIndex="1"
+                          prefWidth="260" promptText="Optional"/>
+                <Label text="Links to a scheduled maintenance job"
+                       GridPane.rowIndex="4" GridPane.columnIndex="2" GridPane.columnSpan="2"
+                       style="-fx-text-fill:#5c6b8a; -fx-font-size:11px;"/>
 
             </GridPane>
 
-            <!-- Work order cost preview — shown when breakdown is selected -->
+            <!-- Work order cost preview -->
             <HBox fx:id="workOrderCostBox" alignment="CENTER_LEFT" spacing="8"
                   visible="false" managed="false"
-                  style="-fx-background-color:#d6e8fa; -fx-padding:8 12 8 12; -fx-background-radius:6;">
+                  style="-fx-background-color:#d6e8fa; -fx-padding:8 12; -fx-background-radius:6;">
                 <Label text="Work order cost so far:" style="-fx-font-weight:bold; -fx-text-fill:#1b3a6b;"/>
-                <Label fx:id="workOrderCostLabel" text="Rs 0.00"
-                       style="-fx-font-weight:bold; -fx-text-fill:#1b3a6b;"/>
-                <Label text="(parts already linked to this breakdown)"
-                       style="-fx-text-fill:#5c6b8a; -fx-font-size:11px;"/>
+                <Label fx:id="workOrderCostLabel" text="Rs 0.00" style="-fx-font-weight:bold; -fx-text-fill:#1b3a6b;"/>
             </HBox>
 
             <HBox spacing="10">
@@ -93,17 +89,17 @@
             <Label fx:id="errorLabel" styleClass="error-label" text="" wrapText="true"/>
         </VBox>
 
-        <!-- TRANSACTIONS TABLE -->
+        <!-- TABLE -->
         <TableView fx:id="issueTable" VBox.vgrow="ALWAYS" styleClass="main-table">
             <columns>
-                <TableColumn fx:id="colId"          text="ID"        prefWidth="45"/>
-                <TableColumn fx:id="colPart"         text="Part"      prefWidth="180"/>
-                <TableColumn fx:id="colEquipment"    text="Equipment" prefWidth="160"/>
-                <TableColumn fx:id="colIssuedOn"     text="Date"      prefWidth="110"/>
-                <TableColumn fx:id="colQty"          text="Qty"       prefWidth="55"/>
-                <TableColumn fx:id="colIssuedBy"     text="By"        prefWidth="100"/>
-                <TableColumn fx:id="colType"         text="Type"      prefWidth="80"/>
-                <TableColumn fx:id="colBreakdown"    text="Work Order" prefWidth="160"/>
+                <TableColumn fx:id="colId"         text="ID"         prefWidth="45"/>
+                <TableColumn fx:id="colPart"        text="Part"       prefWidth="170"/>
+                <TableColumn fx:id="colEquipment"   text="Equipment"  prefWidth="150"/>
+                <TableColumn fx:id="colIssuedOn"    text="Date"       prefWidth="105"/>
+                <TableColumn fx:id="colQty"         text="Qty"        prefWidth="50"/>
+                <TableColumn fx:id="colIssuedBy"    text="By"         prefWidth="90"/>
+                <TableColumn fx:id="colType"        text="Type"       prefWidth="75"/>
+                <TableColumn fx:id="colWorkOrder"   text="Work Order" prefWidth="190"/>
             </columns>
             <placeholder>
                 <Label text="No transactions yet. Click Issue / Return Part to record one."/>
@@ -112,11 +108,11 @@
 
     </VBox>
 
-    <!-- RIGHT PANEL: Alert feed -->
-    <VBox styleClass="dash-card" prefWidth="280" spacing="10">
+    <!-- RIGHT: Alert feed -->
+    <VBox styleClass="dash-card" prefWidth="270" spacing="10">
         <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
         <Label fx:id="alertCountLabel" text="Active Alerts" styleClass="card-title"/>
-        <ListView fx:id="alertListView" VBox.vgrow="ALWAYS" styleClass="alert-list"/>
+        <ListView fx:id="alertListView" VBox.vgrow="ALWAYS"/>
     </VBox>
 
 </HBox>

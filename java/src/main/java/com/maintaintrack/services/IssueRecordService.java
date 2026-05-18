@@ -1,5 +1,6 @@
 package com.maintaintrack.services;
 
+import com.maintaintrack.dao.DBConnection;
 import com.maintaintrack.dao.IssueRecordDAO;
 import com.maintaintrack.dao.PartDAO;
 import com.maintaintrack.models.IssueRecord;
@@ -9,45 +10,28 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-import com.maintaintrack.dao.DBConnection;
-
 /**
- * IssueRecordService — business layer for part issue/return transactions.
+ * IssueRecordService — business layer for part transactions.
  *
- * Day 8: supports optional breakdown_id linking (work order).
+ * Day 8: breakdown_id work order link
+ * Day 9: maintenance_id work order link + WorkOrderService delegation
  *
- * Core rule: the ISSUE_RECORD insert and PART.qty_on_hand update
- * always happen together in a single transaction. If either fails,
- * both are rolled back — inventory is never silently wrong.
- *
- * Validation:
- *   - Part and equipment are required
- *   - Qty must be positive
- *   - For an issue: qty must not exceed current stock
- *   - breakdown_id is optional — null means standalone stock draw
+ * Core rule: ISSUE_RECORD insert and PART.qty_on_hand update
+ * always happen atomically. If either fails, both roll back.
  */
 public class IssueRecordService {
 
     private final IssueRecordDAO dao     = new IssueRecordDAO();
     private final PartDAO        partDAO = new PartDAO();
 
-    /**
-     * Records a part transaction (issue or return) atomically.
-     * breakdown_id on the record is preserved if set (work order link).
-     */
     public void recordTransaction(IssueRecord record) throws SQLException {
         validate(record);
-
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false);
             try {
                 dao.insert(record, conn);
-                dao.adjustPartQty(
-                        record.getPartId(),
-                        record.getQty(),
-                        record.getType(),
-                        conn
-                );
+                dao.adjustPartQty(record.getPartId(), record.getQty(),
+                                  record.getType(), conn);
                 conn.commit();
             } catch (SQLException e) {
                 conn.rollback();
@@ -60,25 +44,27 @@ public class IssueRecordService {
         return dao.findAll();
     }
 
-    public List<IssueRecord> getRecordsForEquipment(int equipmentId) throws SQLException {
-        return dao.findByEquipment(equipmentId);
+    public List<IssueRecord> getRecordsForEquipment(int id) throws SQLException {
+        return dao.findByEquipment(id);
     }
 
-    /**
-     * Day 8 — Work order: all parts issued for a specific breakdown.
-     */
-    public List<IssueRecord> getWorkOrderParts(int breakdownId) throws SQLException {
+    // Day 8
+    public List<IssueRecord> getBreakdownParts(int breakdownId) throws SQLException {
         return dao.findByBreakdown(breakdownId);
     }
 
-    /**
-     * Day 8 — Work order cost: total parts spend for one breakdown.
-     */
-    public double getWorkOrderCost(int breakdownId) throws SQLException {
+    public double getBreakdownWorkOrderCost(int breakdownId) throws SQLException {
         return dao.getWorkOrderCost(breakdownId);
     }
 
-    // ── Validation ────────────────────────────────────────────────────────
+    // Day 9
+    public List<IssueRecord> getMaintenanceParts(int maintenanceId) throws SQLException {
+        return dao.findByMaintenance(maintenanceId);
+    }
+
+    public double getMaintenanceWorkOrderCost(int maintenanceId) throws SQLException {
+        return dao.getMaintenanceCost(maintenanceId);
+    }
 
     private void validate(IssueRecord r) throws SQLException {
         if (r.getPartId() <= 0)
@@ -89,16 +75,12 @@ public class IssueRecordService {
             throw new IllegalArgumentException("Issue date is required.");
         if (r.getQty() <= 0)
             throw new IllegalArgumentException("Quantity must be a positive number.");
-
-        // For issues: check we have enough stock
         if ("issue".equals(r.getType())) {
             Part part = partDAO.findById(r.getPartId());
             if (part != null && r.getQty() > part.getQtyOnHand()) {
                 throw new IllegalArgumentException(
-                        "Insufficient stock. Available: "
-                        + part.getQtyOnHand() + " " + part.getUnit()
-                        + ", requested: " + r.getQty() + "."
-                );
+                    "Insufficient stock. Available: " + part.getQtyOnHand()
+                    + " " + part.getUnit() + ", requested: " + r.getQty() + ".");
             }
         }
     }

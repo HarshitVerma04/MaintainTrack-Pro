@@ -9,16 +9,12 @@ import java.sql.Statement;
  * DatabaseInitializer — runs once on app startup.
  *
  * Creates all 6 tables if they don't already exist.
- * Also runs schema migrations safely using ALTER TABLE IF NOT EXISTS pattern
- * so existing databases get new columns without needing a reseed.
+ * Runs schema migrations safely so existing databases
+ * get new columns without needing a reseed.
  *
- * Call order matters because of foreign keys:
- *   1. SUPPLIER        (no dependencies)
- *   2. EQUIPMENT       (no dependencies)
- *   3. PART            (depends on SUPPLIER)
- *   4. MAINTENANCE_LOG (depends on EQUIPMENT)
- *   5. BREAKDOWN_LOG   (depends on EQUIPMENT)
- *   6. ISSUE_RECORD    (depends on PART + EQUIPMENT + BREAKDOWN_LOG)
+ * Migration history:
+ *   Day 8  — added breakdown_id FK to ISSUE_RECORD
+ *   Day 9  — added maintenance_id FK to ISSUE_RECORD
  */
 public class DatabaseInitializer {
 
@@ -76,20 +72,21 @@ public class DatabaseInitializer {
             """;
 
     /**
-     * Day 8 — breakdown_id FK added to ISSUE_RECORD.
-     * Links a part transaction to the specific breakdown it was used to fix.
-     * Optional (nullable) — issues not tied to a breakdown leave it NULL.
+     * Day 8: breakdown_id — links an issue to a specific breakdown incident.
+     * Day 9: maintenance_id — links an issue to a specific maintenance job.
+     * Both are optional (nullable) — a standalone stock draw leaves both NULL.
      */
     private static final String CREATE_ISSUE_RECORD = """
             CREATE TABLE IF NOT EXISTS ISSUE_RECORD (
-                id           INTEGER PRIMARY KEY AUTOINCREMENT,
-                part_id      INTEGER NOT NULL REFERENCES PART(id),
-                equipment_id INTEGER NOT NULL REFERENCES EQUIPMENT(id),
-                breakdown_id INTEGER          REFERENCES BREAKDOWN_LOG(id),
-                issued_on    TEXT    NOT NULL,
-                qty          INTEGER NOT NULL,
-                issued_by    TEXT,
-                type         TEXT    CHECK(type IN ('issue','return'))
+                id             INTEGER PRIMARY KEY AUTOINCREMENT,
+                part_id        INTEGER NOT NULL REFERENCES PART(id),
+                equipment_id   INTEGER NOT NULL REFERENCES EQUIPMENT(id),
+                breakdown_id   INTEGER          REFERENCES BREAKDOWN_LOG(id),
+                maintenance_id INTEGER          REFERENCES MAINTENANCE_LOG(id),
+                issued_on      TEXT    NOT NULL,
+                qty            INTEGER NOT NULL,
+                issued_by      TEXT,
+                type           TEXT    CHECK(type IN ('issue','return'))
             );
             """;
 
@@ -106,10 +103,8 @@ public class DatabaseInitializer {
             stmt.execute(CREATE_BREAKDOWN_LOG);
             stmt.execute(CREATE_ISSUE_RECORD);
 
-            // ── Day 8 migration: add breakdown_id to existing databases ───────
-            // ALTER TABLE ADD COLUMN is safe to call even if the column exists
-            // because we check the schema first.
-            migrateAddBreakdownId(conn);
+            // Run migrations for existing databases
+            migrateIssueRecord(conn);
 
             System.out.println("[DB] Schema initialized successfully.");
 
@@ -120,27 +115,38 @@ public class DatabaseInitializer {
     }
 
     /**
-     * Adds breakdown_id to ISSUE_RECORD if it doesn't already exist.
-     * SQLite doesn't support "ALTER TABLE ADD COLUMN IF NOT EXISTS",
+     * Adds breakdown_id and maintenance_id to ISSUE_RECORD
+     * if they don't already exist.
+     * SQLite doesn't support ADD COLUMN IF NOT EXISTS,
      * so we check PRAGMA table_info first.
      */
-    private static void migrateAddBreakdownId(Connection conn) throws SQLException {
-        boolean columnExists = false;
+    private static void migrateIssueRecord(Connection conn) throws SQLException {
+        boolean hasBreakdownId   = false;
+        boolean hasMaintenanceId = false;
+
         try (ResultSet rs = conn.createStatement()
                 .executeQuery("PRAGMA table_info(ISSUE_RECORD);")) {
             while (rs.next()) {
-                if ("breakdown_id".equals(rs.getString("name"))) {
-                    columnExists = true;
-                    break;
-                }
+                String col = rs.getString("name");
+                if ("breakdown_id".equals(col))   hasBreakdownId   = true;
+                if ("maintenance_id".equals(col))  hasMaintenanceId = true;
             }
         }
-        if (!columnExists) {
+
+        if (!hasBreakdownId) {
             conn.createStatement().execute(
                 "ALTER TABLE ISSUE_RECORD ADD COLUMN " +
                 "breakdown_id INTEGER REFERENCES BREAKDOWN_LOG(id);"
             );
             System.out.println("[DB] Migration: added breakdown_id to ISSUE_RECORD.");
+        }
+
+        if (!hasMaintenanceId) {
+            conn.createStatement().execute(
+                "ALTER TABLE ISSUE_RECORD ADD COLUMN " +
+                "maintenance_id INTEGER REFERENCES MAINTENANCE_LOG(id);"
+            );
+            System.out.println("[DB] Migration: added maintenance_id to ISSUE_RECORD.");
         }
     }
 }
