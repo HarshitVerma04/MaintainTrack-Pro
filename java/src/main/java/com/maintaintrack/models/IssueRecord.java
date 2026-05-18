@@ -3,37 +3,30 @@ package com.maintaintrack.models;
 import java.time.LocalDate;
 
 /**
- * IssueRecord — plain Java model matching the ISSUE_RECORD table.
+ * IssueRecord — POJO for the ISSUE_RECORD table.
  *
- * type must be either "issue" (stock goes out) or "return" (stock comes back).
- * partName and equipmentName are joined fields for display — not stored in the table.
+ * Day 8 addition: breakdownId (optional FK to BREAKDOWN_LOG).
+ * When set, the issue is part of a work order tied to a specific
+ * breakdown incident — enabling full traceability:
+ *   Breakdown → Parts issued → Cost of that repair
+ *
+ * When null, the issue is a standalone stock draw not tied to a breakdown.
  */
 public class IssueRecord {
 
     private int       id;
     private int       partId;
-    private String    partName;        // joined — not in ISSUE_RECORD table
+    private String    partName;        // joined for display
     private int       equipmentId;
-    private String    equipmentName;   // joined — not in ISSUE_RECORD table
+    private String    equipmentName;   // joined for display
+    private Integer   breakdownId;     // nullable — Day 8 work order link
+    private String    breakdownDesc;   // joined for display
     private LocalDate issuedOn;
     private int       qty;
     private String    issuedBy;
-    private String    type;            // "issue" or "return"
-
-    // ── Constructors ──────────────────────────────────────────────────────
+    private String    type;            // 'issue' or 'return'
 
     public IssueRecord() {}
-
-    public IssueRecord(int id, int partId, int equipmentId,
-                       LocalDate issuedOn, int qty, String issuedBy, String type) {
-        this.id          = id;
-        this.partId      = partId;
-        this.equipmentId = equipmentId;
-        this.issuedOn    = issuedOn;
-        this.qty         = qty;
-        this.issuedBy    = issuedBy;
-        this.type        = type;
-    }
 
     // ── Getters & Setters ─────────────────────────────────────────────────
 
@@ -52,6 +45,12 @@ public class IssueRecord {
     public String    getEquipmentName()             { return equipmentName; }
     public void      setEquipmentName(String e)     { this.equipmentName = e; }
 
+    public Integer   getBreakdownId()               { return breakdownId; }
+    public void      setBreakdownId(Integer b)      { this.breakdownId = b; }
+
+    public String    getBreakdownDesc()             { return breakdownDesc; }
+    public void      setBreakdownDesc(String b)     { this.breakdownDesc = b; }
+
     public LocalDate getIssuedOn()                  { return issuedOn; }
     public void      setIssuedOn(LocalDate d)       { this.issuedOn = d; }
 
@@ -59,14 +58,24 @@ public class IssueRecord {
     public void      setQty(int q)                  { this.qty = q; }
 
     public String    getIssuedBy()                  { return issuedBy; }
-    public void      setIssuedBy(String s)          { this.issuedBy = s; }
+    public void      setIssuedBy(String i)          { this.issuedBy = i; }
 
     public String    getType()                      { return type; }
     public void      setType(String t)              { this.type = t; }
 
-    /** Returns a display label: "Issue" or "Return". */
+    /**
+     * Used by TableView cell factory for colour-coded display.
+     * Returns "Issue" or "Return" (capitalised).
+     */
     public String getTypeDisplay() {
-        if (type == null) return "";
+        if (type == null) return "-";
         return "issue".equals(type) ? "Issue" : "Return";
+    }
+
+    /**
+     * True if this issue is linked to a specific breakdown incident.
+     */
+    public boolean isWorkOrder() {
+        return breakdownId != null;
     }
 }

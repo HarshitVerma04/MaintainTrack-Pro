@@ -4,110 +4,119 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 
-<VBox xmlns:fx="http://javafx.com/fxml"
+<HBox xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.maintaintrack.controllers.IssueController"
-      spacing="14" styleClass="screen-root">
+      spacing="16" styleClass="screen-root">
 
     <padding><Insets top="24" right="28" bottom="24" left="28"/></padding>
 
-    <!-- ── HEADER ─────────────────────────────────────────────────── -->
-    <HBox alignment="CENTER_LEFT" spacing="12">
-        <Label text="Issues &amp; Alerts" styleClass="screen-title"/>
-        <Region HBox.hgrow="ALWAYS"/>
-        <Label fx:id="overdueBadge"  text="" styleClass="badge-danger" visible="false" managed="false"/>
-        <Label fx:id="lowStockBadge" text="" styleClass="badge-danger" visible="false" managed="false"/>
-        <Button text="+ Issue / Return" styleClass="btn-primary" onAction="#onAdd"/>
-    </HBox>
+    <!-- LEFT PANEL: Form + Transactions table -->
+    <VBox spacing="16" HBox.hgrow="ALWAYS">
 
-    <!-- ── MAIN SPLIT: left = transactions table, right = alert feed ── -->
-    <HBox VBox.vgrow="ALWAYS" spacing="14">
+        <!-- Header -->
+        <HBox alignment="CENTER_LEFT" spacing="12">
+            <Label text="Parts Issues &amp; Work Orders" styleClass="screen-title"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="overdueBadge"  text="" styleClass="badge-danger"
+                   visible="false" managed="false"/>
+            <Label fx:id="lowStockBadge" text="" styleClass="badge-danger"
+                   visible="false" managed="false"/>
+            <Button text="+ Issue / Return Part" styleClass="btn-primary" onAction="#onAdd"/>
+        </HBox>
 
-        <!-- LEFT: Issue/Return transactions -->
-        <VBox HBox.hgrow="ALWAYS" spacing="10">
+        <!-- FORM PANEL -->
+        <VBox fx:id="formPanel" styleClass="form-panel" spacing="12"
+              visible="false" managed="false">
 
-            <!-- Issue/Return form -->
-            <VBox fx:id="formPanel" styleClass="form-panel" spacing="12"
-                  visible="false" managed="false">
+            <Label text="Record Part Transaction" styleClass="form-title"/>
 
-                <Label text="Record Part Issue / Return" styleClass="form-title"/>
+            <!-- Issue / Return toggle -->
+            <HBox spacing="16" alignment="CENTER_LEFT">
+                <Label text="Transaction:" styleClass="form-label"/>
+                <RadioButton fx:id="radioIssue"  text="Issue (out)"   selected="true"/>
+                <RadioButton fx:id="radioReturn" text="Return (back)"/>
+            </HBox>
 
-                <GridPane hgap="16" vgap="10">
+            <GridPane hgap="16" vgap="10">
 
-                    <!-- Row 0: Part + Equipment -->
-                    <Label text="Part *" GridPane.rowIndex="0" GridPane.columnIndex="0" styleClass="form-label"/>
-                    <ComboBox fx:id="fieldPart" GridPane.rowIndex="0" GridPane.columnIndex="1" prefWidth="240"/>
+                <!-- Row 0: Part + Stock preview -->
+                <Label text="Part *" GridPane.rowIndex="0" GridPane.columnIndex="0" styleClass="form-label"/>
+                <ComboBox fx:id="fieldPart" GridPane.rowIndex="0" GridPane.columnIndex="1" prefWidth="260"/>
+                <Label fx:id="stockPreview" text="--"
+                       GridPane.rowIndex="0" GridPane.columnIndex="2"
+                       GridPane.columnSpan="2" styleClass="form-label"/>
 
-                    <Label text="Equipment *" GridPane.rowIndex="0" GridPane.columnIndex="2" styleClass="form-label"/>
-                    <ComboBox fx:id="fieldEquipment" GridPane.rowIndex="0" GridPane.columnIndex="3" prefWidth="220"/>
+                <!-- Row 1: Equipment + Date -->
+                <Label text="Equipment *" GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="form-label"/>
+                <ComboBox fx:id="fieldEquipment" GridPane.rowIndex="1" GridPane.columnIndex="1" prefWidth="260"/>
 
-                    <!-- Row 1: Qty + Issued By -->
-                    <Label text="Quantity *" GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="form-label"/>
-                    <TextField fx:id="fieldQty" promptText="e.g. 2"
-                               GridPane.rowIndex="1" GridPane.columnIndex="1" prefWidth="240"/>
+                <Label text="Date *" GridPane.rowIndex="1" GridPane.columnIndex="2" styleClass="form-label"/>
+                <DatePicker fx:id="fieldIssuedOn" GridPane.rowIndex="1" GridPane.columnIndex="3" prefWidth="180"/>
 
-                    <Label text="Issued By" GridPane.rowIndex="1" GridPane.columnIndex="2" styleClass="form-label"/>
-                    <TextField fx:id="fieldIssuedBy" promptText="e.g. Harshit"
-                               GridPane.rowIndex="1" GridPane.columnIndex="3" prefWidth="220"/>
+                <!-- Row 2: Qty + Issued By -->
+                <Label text="Qty *" GridPane.rowIndex="2" GridPane.columnIndex="0" styleClass="form-label"/>
+                <TextField fx:id="fieldQty" promptText="e.g. 2"
+                           GridPane.rowIndex="2" GridPane.columnIndex="1" prefWidth="260"/>
 
-                    <!-- Row 2: Date + Type -->
-                    <Label text="Date *" GridPane.rowIndex="2" GridPane.columnIndex="0" styleClass="form-label"/>
-                    <DatePicker fx:id="fieldIssuedOn" GridPane.rowIndex="2" GridPane.columnIndex="1" prefWidth="240"/>
+                <Label text="Issued By" GridPane.rowIndex="2" GridPane.columnIndex="2" styleClass="form-label"/>
+                <TextField fx:id="fieldIssuedBy" promptText="e.g. Harshit"
+                           GridPane.rowIndex="2" GridPane.columnIndex="3" prefWidth="180"/>
 
-                    <Label text="Type *" GridPane.rowIndex="2" GridPane.columnIndex="2" styleClass="form-label"/>
-                    <HBox GridPane.rowIndex="2" GridPane.columnIndex="3" spacing="16" alignment="CENTER_LEFT">
-                        <RadioButton fx:id="radioIssue"  text="Issue"
-                                     toggleGroup="$typeToggleGroup" selected="true"/>
-                        <RadioButton fx:id="radioReturn" text="Return"
-                                     toggleGroup="$typeToggleGroup"/>
-                    </HBox>
+                <!-- Row 3: Breakdown link (Day 8 — Work Order) -->
+                <Label text="Link to Breakdown" GridPane.rowIndex="3" GridPane.columnIndex="0"
+                       styleClass="form-label"/>
+                <ComboBox fx:id="fieldBreakdown" GridPane.rowIndex="3" GridPane.columnIndex="1"
+                          prefWidth="260" promptText="Optional -- leave blank for standalone issue"/>
+                <Label text="Links this issue to a work order"
+                       GridPane.rowIndex="3" GridPane.columnIndex="2"
+                       GridPane.columnSpan="2"
+                       style="-fx-text-fill:#5c6b8a; -fx-font-size:11px;" wrapText="true"/>
 
-                </GridPane>
+            </GridPane>
 
-                <!-- Stock preview -->
-                <HBox alignment="CENTER_LEFT" spacing="8">
-                    <Label text="Current stock:" styleClass="form-label"/>
-                    <Label fx:id="stockPreview" text="—" styleClass="form-label"/>
-                </HBox>
+            <!-- Work order cost preview — shown when breakdown is selected -->
+            <HBox fx:id="workOrderCostBox" alignment="CENTER_LEFT" spacing="8"
+                  visible="false" managed="false"
+                  style="-fx-background-color:#d6e8fa; -fx-padding:8 12 8 12; -fx-background-radius:6;">
+                <Label text="Work order cost so far:" style="-fx-font-weight:bold; -fx-text-fill:#1b3a6b;"/>
+                <Label fx:id="workOrderCostLabel" text="Rs 0.00"
+                       style="-fx-font-weight:bold; -fx-text-fill:#1b3a6b;"/>
+                <Label text="(parts already linked to this breakdown)"
+                       style="-fx-text-fill:#5c6b8a; -fx-font-size:11px;"/>
+            </HBox>
 
-                <HBox spacing="10">
-                    <Button text="Save"   styleClass="btn-primary"   onAction="#onSave"/>
-                    <Button text="Cancel" styleClass="btn-secondary" onAction="#onCancel"/>
-                </HBox>
+            <HBox spacing="10">
+                <Button text="Save"   styleClass="btn-primary"   onAction="#onSave"/>
+                <Button text="Cancel" styleClass="btn-secondary" onAction="#onCancel"/>
+            </HBox>
 
-                <Label fx:id="errorLabel" styleClass="error-label" text="" wrapText="true"/>
-            </VBox>
-
-            <!-- Transactions table -->
-            <TableView fx:id="issueTable" VBox.vgrow="ALWAYS" styleClass="main-table">
-                <columns>
-                    <TableColumn fx:id="colId"        text="ID"        prefWidth="50"/>
-                    <TableColumn fx:id="colPart"      text="Part"      prefWidth="200"/>
-                    <TableColumn fx:id="colEquipment" text="Equipment" prefWidth="180"/>
-                    <TableColumn fx:id="colIssuedOn"  text="Date"      prefWidth="110"/>
-                    <TableColumn fx:id="colQty"       text="Qty"       prefWidth="60"/>
-                    <TableColumn fx:id="colIssuedBy"  text="By"        prefWidth="110"/>
-                    <TableColumn fx:id="colType"      text="Type"      prefWidth="80"/>
-                </columns>
-                <placeholder>
-                    <Label text="No transactions yet. Click Issue / Return to record one."/>
-                </placeholder>
-            </TableView>
+            <Label fx:id="errorLabel" styleClass="error-label" text="" wrapText="true"/>
         </VBox>
 
-        <!-- RIGHT: Alert feed (Day 16) -->
-        <VBox fx:id="alertFeedPanel" prefWidth="320" spacing="10" styleClass="form-panel">
-            <Label text="Active Alerts" styleClass="form-title"/>
-            <Label fx:id="alertCountLabel" text="Loading…" styleClass="form-label"/>
-            <Separator/>
-            <ListView fx:id="alertListView" VBox.vgrow="ALWAYS" styleClass="alert-list"
-                      fixedCellSize="64"/>
-        </VBox>
+        <!-- TRANSACTIONS TABLE -->
+        <TableView fx:id="issueTable" VBox.vgrow="ALWAYS" styleClass="main-table">
+            <columns>
+                <TableColumn fx:id="colId"          text="ID"        prefWidth="45"/>
+                <TableColumn fx:id="colPart"         text="Part"      prefWidth="180"/>
+                <TableColumn fx:id="colEquipment"    text="Equipment" prefWidth="160"/>
+                <TableColumn fx:id="colIssuedOn"     text="Date"      prefWidth="110"/>
+                <TableColumn fx:id="colQty"          text="Qty"       prefWidth="55"/>
+                <TableColumn fx:id="colIssuedBy"     text="By"        prefWidth="100"/>
+                <TableColumn fx:id="colType"         text="Type"      prefWidth="80"/>
+                <TableColumn fx:id="colBreakdown"    text="Work Order" prefWidth="160"/>
+            </columns>
+            <placeholder>
+                <Label text="No transactions yet. Click Issue / Return Part to record one."/>
+            </placeholder>
+        </TableView>
 
-    </HBox>
+    </VBox>
 
-    <!-- Declare the ToggleGroup here so FXML can reference it above -->
-    <fx:define>
-        <ToggleGroup fx:id="typeToggleGroup"/>
-    </fx:define>
+    <!-- RIGHT PANEL: Alert feed -->
+    <VBox styleClass="dash-card" prefWidth="280" spacing="10">
+        <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+        <Label fx:id="alertCountLabel" text="Active Alerts" styleClass="card-title"/>
+        <ListView fx:id="alertListView" VBox.vgrow="ALWAYS" styleClass="alert-list"/>
+    </VBox>
 
-</VBox>
+</HBox>

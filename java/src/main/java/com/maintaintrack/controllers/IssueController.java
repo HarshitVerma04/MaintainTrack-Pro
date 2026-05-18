@@ -1,8 +1,10 @@
 package com.maintaintrack.controllers;
 
+import com.maintaintrack.dao.BreakdownLogDAO;
 import com.maintaintrack.dao.EquipmentDAO;
 import com.maintaintrack.dao.PartDAO;
 import com.maintaintrack.models.Alert;
+import com.maintaintrack.models.BreakdownLog;
 import com.maintaintrack.models.Equipment;
 import com.maintaintrack.models.IssueRecord;
 import com.maintaintrack.models.Part;
@@ -13,63 +15,73 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.HBox;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 
 /**
- * IssueController — handles the Issues &amp; Alerts screen (Issues.fxml).
+ * IssueController — handles the Issues and Work Orders screen.
  *
- * Two responsibilities on one screen:
+ * Two responsibilities:
  *
- *  1. Issue / Return form (Days 10-12)
- *     Records part transactions with fully transactional stock updates.
- *     Stock preview updates live when a part is selected.
+ * 1. Issue / Return form (Days 10-12)
+ *    Transactional stock update. Live stock preview on part selection.
  *
- *  2. Alert feed panel (Day 16)
- *     Right-hand panel showing colour-coded active alerts from AlertService.
- *     Refreshed on init, on every save, and by MainLayoutController's
- *     polling callback — so it self-clears when conditions are fixed (Day 19).
+ * 2. Day 8 — Work Order system
+ *    Optional breakdown dropdown. When selected, the issue is linked to
+ *    that breakdown incident. The work order cost preview shows how much
+ *    has already been spent on parts for that breakdown.
+ *
+ * 3. Alert feed panel (Day 16)
+ *    Right-hand panel, refreshed after every save and by the polling service.
  */
 public class IssueController {
 
-    // ── Issue/Return table ────────────────────────────────────────────────
+    // ── Table ─────────────────────────────────────────────────────────────
     @FXML private TableView<IssueRecord>             issueTable;
-    @FXML private TableColumn<IssueRecord, Integer>  colId;
-    @FXML private TableColumn<IssueRecord, String>   colPart;
-    @FXML private TableColumn<IssueRecord, String>   colEquipment;
-    @FXML private TableColumn<IssueRecord, LocalDate>colIssuedOn;
-    @FXML private TableColumn<IssueRecord, Integer>  colQty;
-    @FXML private TableColumn<IssueRecord, String>   colIssuedBy;
-    @FXML private TableColumn<IssueRecord, String>   colType;
+    @FXML private TableColumn<IssueRecord,Integer>   colId;
+    @FXML private TableColumn<IssueRecord,String>    colPart;
+    @FXML private TableColumn<IssueRecord,String>    colEquipment;
+    @FXML private TableColumn<IssueRecord,LocalDate> colIssuedOn;
+    @FXML private TableColumn<IssueRecord,Integer>   colQty;
+    @FXML private TableColumn<IssueRecord,String>    colIssuedBy;
+    @FXML private TableColumn<IssueRecord,String>    colType;
+    @FXML private TableColumn<IssueRecord,String>    colBreakdown;
 
     // ── Form ──────────────────────────────────────────────────────────────
-    @FXML private VBox               formPanel;
-    @FXML private ComboBox<Part>     fieldPart;
-    @FXML private ComboBox<Equipment>fieldEquipment;
-    @FXML private DatePicker         fieldIssuedOn;
-    @FXML private TextField          fieldQty;
-    @FXML private TextField          fieldIssuedBy;
-    @FXML private RadioButton        radioIssue;
-    @FXML private RadioButton        radioReturn;
-    @FXML private Label              stockPreview;
-    @FXML private Label              errorLabel;
+    @FXML private javafx.scene.layout.VBox formPanel;
+    @FXML private ComboBox<Part>           fieldPart;
+    @FXML private ComboBox<Equipment>      fieldEquipment;
+    @FXML private DatePicker               fieldIssuedOn;
+    @FXML private TextField                fieldQty;
+    @FXML private TextField                fieldIssuedBy;
+    @FXML private RadioButton              radioIssue;
+    @FXML private RadioButton              radioReturn;
+    @FXML private Label                    stockPreview;
+    @FXML private Label                    errorLabel;
 
-    // ── Alert feed (Day 16) ───────────────────────────────────────────────
-    @FXML private Label              alertCountLabel;
-    @FXML private ListView<Alert>    alertListView;
+    // ── Day 8 — Work Order ────────────────────────────────────────────────
+    @FXML private ComboBox<BreakdownLog>   fieldBreakdown;
+    @FXML private HBox                     workOrderCostBox;
+    @FXML private Label                    workOrderCostLabel;
+
+    // ── Alert feed ────────────────────────────────────────────────────────
+    @FXML private Label           alertCountLabel;
+    @FXML private ListView<Alert> alertListView;
 
     // ── Header badges ─────────────────────────────────────────────────────
-    @FXML private Label              overdueBadge;
-    @FXML private Label              lowStockBadge;
+    @FXML private Label overdueBadge;
+    @FXML private Label lowStockBadge;
 
     // ── State ─────────────────────────────────────────────────────────────
     private final IssueRecordService service      = new IssueRecordService();
     private final AlertService       alertService = new AlertService();
     private final EquipmentDAO       equipmentDAO = new EquipmentDAO();
     private final PartDAO            partDAO      = new PartDAO();
+    private final BreakdownLogDAO    breakdownDAO = new BreakdownLogDAO();
+
     private final ObservableList<IssueRecord> tableData = FXCollections.observableArrayList();
 
     // ── Init ──────────────────────────────────────────────────────────────
@@ -77,8 +89,10 @@ public class IssueController {
     @FXML
     public void initialize() {
         setupColumns();
+        setupToggleGroup();
         loadDropdowns();
         setupPartPreview();
+        setupBreakdownPreview();
         loadTable();
         refreshAlerts();
     }
@@ -92,7 +106,7 @@ public class IssueController {
         colIssuedBy.setCellValueFactory(new PropertyValueFactory<>("issuedBy"));
         colType.setCellValueFactory(new PropertyValueFactory<>("typeDisplay"));
 
-        // Colour-code Type: Issue = red, Return = green
+        // Type column — colour coded
         colType.setCellFactory(col -> new TableCell<>() {
             @Override
             protected void updateItem(String val, boolean empty) {
@@ -100,36 +114,90 @@ public class IssueController {
                 if (empty || val == null) { setText(null); setStyle(""); return; }
                 setText(val);
                 setStyle("Issue".equals(val)
-                        ? "-fx-text-fill: #8b1a1a; -fx-font-weight: bold;"
-                        : "-fx-text-fill: #1a7a4a; -fx-font-weight: bold;");
+                        ? "-fx-text-fill:#8b1a1a; -fx-font-weight:bold;"
+                        : "-fx-text-fill:#1a7a4a; -fx-font-weight:bold;");
+            }
+        });
+
+        // Work order column — Day 8
+        colBreakdown.setCellFactory(col -> new TableCell<>() {
+            @Override
+            protected void updateItem(String val, boolean empty) {
+                super.updateItem(val, empty);
+                if (empty) { setText(null); setStyle(""); return; }
+                IssueRecord r = getTableView().getItems().get(getIndex());
+                if (r.isWorkOrder()) {
+                    String desc = r.getBreakdownDesc();
+                    setText(desc != null && desc.length() > 28
+                            ? desc.substring(0, 25) + "..." : desc);
+                    setStyle("-fx-text-fill:#2e86de; -fx-font-style:italic;");
+                } else {
+                    setText("-- Standalone");
+                    setStyle("-fx-text-fill:#5c6b8a;");
+                }
             }
         });
 
         issueTable.setItems(tableData);
     }
 
+    private void setupToggleGroup() {
+        ToggleGroup group = new ToggleGroup();
+        radioIssue.setToggleGroup(group);
+        radioReturn.setToggleGroup(group);
+        radioIssue.setSelected(true);
+    }
+
     private void loadDropdowns() {
         try {
             fieldPart.setItems(FXCollections.observableArrayList(partDAO.findAll()));
             fieldEquipment.setItems(FXCollections.observableArrayList(equipmentDAO.findAll()));
+
+            // Breakdown dropdown — Day 8
+            // Show a blank "None" option first so user can leave it unlinked
+            List<BreakdownLog> breakdowns = breakdownDAO.findAll();
+            fieldBreakdown.setItems(FXCollections.observableArrayList(breakdowns));
+            fieldBreakdown.setValue(null);
         } catch (SQLException e) {
             showError("Could not load dropdowns: " + e.getMessage());
         }
     }
 
-    /** Live stock preview updates whenever the user picks a different part. */
+    // ── Live stock preview on part selection ──────────────────────────────
+
     private void setupPartPreview() {
         fieldPart.valueProperty().addListener((obs, old, part) -> {
             if (part != null) {
-                stockPreview.setText("Current stock: " + part.getQtyOnHand()
+                stockPreview.setText("Stock: " + part.getQtyOnHand()
                         + " " + part.getUnit()
-                        + (part.isLowStock() ? "  ⚠ Low" : "  ✓ OK"));
+                        + (part.isLowStock() ? "  Low!" : "  OK"));
                 stockPreview.setStyle(part.isLowStock()
-                        ? "-fx-text-fill: #8b1a1a; -fx-font-weight: bold;"
-                        : "-fx-text-fill: #1a7a4a;");
+                        ? "-fx-text-fill:#8b1a1a; -fx-font-weight:bold;"
+                        : "-fx-text-fill:#1a7a4a;");
             } else {
-                stockPreview.setText("—");
+                stockPreview.setText("--");
                 stockPreview.setStyle("");
+            }
+        });
+    }
+
+    // ── Day 8 — Work order cost preview on breakdown selection ────────────
+
+    private void setupBreakdownPreview() {
+        fieldBreakdown.valueProperty().addListener((obs, old, breakdown) -> {
+            if (breakdown != null) {
+                try {
+                    double cost = service.getWorkOrderCost(breakdown.getId());
+                    workOrderCostLabel.setText(String.format("Rs %.2f", cost));
+                    workOrderCostBox.setVisible(true);
+                    workOrderCostBox.setManaged(true);
+                } catch (SQLException e) {
+                    workOrderCostBox.setVisible(false);
+                    workOrderCostBox.setManaged(false);
+                }
+            } else {
+                workOrderCostBox.setVisible(false);
+                workOrderCostBox.setManaged(false);
             }
         });
     }
@@ -144,13 +212,10 @@ public class IssueController {
         }
     }
 
-    // ── Day 16/19: Alert feed ─────────────────────────────────────────────
+    // ── Alert feed ────────────────────────────────────────────────────────
 
     /**
-     * Refreshes the alert feed from the live database.
-     * Public so MainLayoutController can call it on each polling cycle.
-     * Because AlertService always re-queries the DB, alerts self-clear
-     * the moment the underlying condition is fixed (Day 19).
+     * Public — called by MainLayoutController on each poll cycle.
      */
     public void refreshAlerts() {
         try {
@@ -166,19 +231,19 @@ public class IssueController {
 
             alertCountLabel.setText(total + " active alert" + (total == 1 ? "" : "s"));
             alertCountLabel.setStyle(total > 0
-                    ? "-fx-text-fill: #8b1a1a; -fx-font-weight: bold;"
-                    : "-fx-text-fill: #1a7a4a; -fx-font-weight: bold;");
+                    ? "-fx-text-fill:#8b1a1a; -fx-font-weight:bold;"
+                    : "-fx-text-fill:#1a7a4a; -fx-font-weight:bold;");
 
             setBadge(overdueBadge,  overdue,  "Overdue");
             setBadge(lowStockBadge, lowStock, "Low Stock");
 
         } catch (SQLException e) {
-            alertCountLabel.setText("⚠ Could not load alerts");
+            alertCountLabel.setText("Could not load alerts");
         }
     }
 
     private void setBadge(Label badge, int count, String label) {
-        badge.setText("⚠  " + count + " " + label);
+        badge.setText(count + " " + label);
         badge.setVisible(count > 0);
         badge.setManaged(count > 0);
     }
@@ -202,10 +267,10 @@ public class IssueController {
             IssueRecord record = buildFromForm();
             service.recordTransaction(record);
             loadTable();
-            loadDropdowns(); // refresh qty counts in part dropdown
+            loadDropdowns();      // refresh qty in part dropdown
             showForm(false);
             clearForm();
-            refreshAlerts(); // Day 19: recheck immediately after save
+            refreshAlerts();      // immediately recheck after save
         } catch (IllegalArgumentException ex) {
             showError(ex.getMessage());
         } catch (SQLException ex) {
@@ -224,20 +289,23 @@ public class IssueController {
     // ── Helpers ───────────────────────────────────────────────────────────
 
     private IssueRecord buildFromForm() {
-        Part      part  = fieldPart.getValue();
-        Equipment equip = fieldEquipment.getValue();
-        String    qtyStr   = fieldQty.getText().trim();
-        String    issuedBy = fieldIssuedBy.getText().trim();
-        String    type     = radioReturn.isSelected() ? "return" : "issue";
+        Part       part   = fieldPart.getValue();
+        Equipment  equip  = fieldEquipment.getValue();
+        BreakdownLog bd   = fieldBreakdown.getValue();
+        String qtyStr     = fieldQty.getText().trim();
+        String issuedBy   = fieldIssuedBy.getText().trim();
+        String type       = radioReturn.isSelected() ? "return" : "issue";
 
         IssueRecord r = new IssueRecord();
         r.setPartId(part  != null ? part.getId()  : 0);
         r.setEquipmentId(equip != null ? equip.getId() : 0);
+        r.setBreakdownId(bd   != null ? bd.getId()    : null);   // Day 8
         r.setIssuedOn(fieldIssuedOn.getValue());
         r.setIssuedBy(issuedBy.isBlank() ? null : issuedBy);
         r.setType(type);
 
-        if (qtyStr.isBlank()) throw new IllegalArgumentException("Quantity is required.");
+        if (qtyStr.isBlank())
+            throw new IllegalArgumentException("Quantity is required.");
         try {
             int qty = Integer.parseInt(qtyStr);
             if (qty <= 0) throw new NumberFormatException();
@@ -248,22 +316,28 @@ public class IssueController {
         return r;
     }
 
-    private void showForm(boolean v) { formPanel.setVisible(v); formPanel.setManaged(v); }
+    private void showForm(boolean v) {
+        formPanel.setVisible(v);
+        formPanel.setManaged(v);
+    }
 
     private void clearForm() {
         fieldPart.setValue(null);
         fieldEquipment.setValue(null);
+        fieldBreakdown.setValue(null);
         fieldIssuedOn.setValue(null);
         fieldQty.clear();
         fieldIssuedBy.clear();
-        stockPreview.setText("—");
+        stockPreview.setText("--");
         stockPreview.setStyle("");
+        workOrderCostBox.setVisible(false);
+        workOrderCostBox.setManaged(false);
         errorLabel.setText("");
     }
 
-    private void showError(String msg) { errorLabel.setText("⚠  " + msg); }
+    private void showError(String msg) { errorLabel.setText(msg); }
 
-    // ── Alert list cell — Day 16: colour-coded by severity ───────────────
+    // ── Alert list cell ───────────────────────────────────────────────────
 
     private static class AlertCell extends ListCell<Alert> {
         @Override
@@ -271,14 +345,13 @@ public class IssueController {
             super.updateItem(alert, empty);
             if (empty || alert == null) {
                 setText(null);
-                setStyle("-fx-padding: 0;");
+                setStyle("-fx-padding:0;");
                 return;
             }
-            String line1 = alert.getIcon() + "  " + alert.getTitle();
-            String line2 = "    " + alert.getDetail()
-                         + "  [" + alert.getTimestampFormatted() + "]";
-            setText(line1 + "\n" + line2);
-            setStyle(alert.getSeverityStyle() + " -fx-padding: 8 12 8 12;");
+            setText(alert.getIcon() + " " + alert.getTitle()
+                    + "\n  " + alert.getDetail()
+                    + " [" + alert.getTimestampFormatted() + "]");
+            setStyle(alert.getSeverityStyle() + " -fx-padding:8 12 8 12;");
         }
     }
 }
