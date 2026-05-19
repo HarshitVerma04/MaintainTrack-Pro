@@ -46,4 +46,9 @@ public class BreakdownLog {
 
     public String    getResolvedBy()                { return resolvedBy; }
     public void      setResolvedBy(String r)        { this.resolvedBy = r; }
+
+    @Override
+    public String toString() {
+        return "#" + id + " — " + equipmentName + " (" + occurredOn + ")";
+    }
 }

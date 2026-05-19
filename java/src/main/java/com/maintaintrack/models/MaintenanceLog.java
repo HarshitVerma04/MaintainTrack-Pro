@@ -46,4 +46,9 @@ public class MaintenanceLog {
 
     public String    getDoneBy()                    { return doneBy; }
     public void      setDoneBy(String d)            { this.doneBy = d; }
+
+    @Override
+    public String toString() {
+        return "#" + id + " — " + equipmentName + " (" + doneOn + ")";
+    }
 }
