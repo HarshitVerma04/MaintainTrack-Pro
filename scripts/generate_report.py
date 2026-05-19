@@ -18,7 +18,14 @@ from datetime import date, datetime
 from fpdf import FPDF
 from fpdf.enums import XPos, YPos
 
-DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'data', 'maintaintrack.db')
+def _get_db_path():
+    appdata = os.environ.get('APPDATA') or os.path.expanduser('~')
+    prod_db = os.path.join(appdata, 'MaintainTrackPro', 'maintaintrack.db')
+    if os.path.exists(prod_db):
+        return prod_db
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data', 'maintaintrack.db')
+
+DB_PATH = _get_db_path()
 
 
 def safe(text):

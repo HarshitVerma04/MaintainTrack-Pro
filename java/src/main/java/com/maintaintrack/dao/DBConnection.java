@@ -1,5 +1,6 @@
 package com.maintaintrack.dao;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -7,30 +8,45 @@ import java.sql.SQLException;
 /**
  * DBConnection — single source of truth for the SQLite connection.
  *
- * The database file lives at:  data/maintaintrack.db
- * (relative to wherever the app is launched from — project root in dev,
- *  next to the JAR in production)
+ * Development:  data/maintaintrack.db  (project root)
+ * Production:   C:\Users\<name>\AppData\Roaming\MaintainTrackPro\maintaintrack.db
  *
- * Usage:
- *   try (Connection conn = DBConnection.getConnection()) {
- *       // use conn
- *   }
- * The try-with-resources pattern auto-closes the connection.
+ * Detection: if AppData db exists → use it (production).
+ * Otherwise fall back to local data/ folder (development).
+ * This means dev and prod never conflict — different paths entirely.
  */
 public class DBConnection {
 
-    private static final String DB_PATH = "data/maintaintrack.db";
-    private static final String URL     = "jdbc:sqlite:" + DB_PATH;
+    private static final String DB_PATH = resolveDbPath();
 
-    // Private constructor — this class should never be instantiated
+    private static String resolveDbPath() {
+        // Production path — AppData
+        String appData = System.getenv("APPDATA");
+        if (appData != null) {
+            File prodDir = new File(appData + File.separator + "MaintainTrackPro");
+            File prodDb  = new File(prodDir, "maintaintrack.db");
+            // Use AppData if the folder already exists (app was installed)
+            // OR if we're running from a jpackage install (no scripts/ folder present)
+            File scriptsDir = new File("scripts");
+            if (!scriptsDir.exists() || prodDb.exists()) {
+                prodDir.mkdirs();
+                return prodDb.getAbsolutePath();
+            }
+        }
+
+        // Development path — local data/ folder
+        new File("data").mkdirs();
+        return "data" + File.separator + "maintaintrack.db";
+    }
+
+    private static final String URL = "jdbc:sqlite:" + DB_PATH;
+
     private DBConnection() {}
 
-    /**
-     * Opens and returns a new connection to the SQLite database.
-     * Caller is responsible for closing it (use try-with-resources).
-     */
     public static Connection getConnection() throws SQLException {
-        new java.io.File("data").mkdirs(); // creates data/ if missing
         return DriverManager.getConnection(URL);
     }
+
+    /** Returns the resolved DB path — useful for logging and diagnostics. */
+    public static String getDbPath() { return DB_PATH; }
 }

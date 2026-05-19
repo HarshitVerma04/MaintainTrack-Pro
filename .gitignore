@@ -164,4 +164,16 @@ secrets.*
 # Final packaged JARs (built via mvn package)
 # Uncomment if you don't want to commit release JARs
 # release/
-# *.jar
+ *.jar
+
+dist/
+*.spec
+
+# Build artifacts
+installer/
+installer2/
+installer3/
+custom-jre/
+bundled/
+build/
+java/target/

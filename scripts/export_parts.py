@@ -29,8 +29,30 @@ from openpyxl.styles import (
 from openpyxl.utils import get_column_letter
 
 # ── Config ────────────────────────────────────────────────────────────────
-DB_PATH     = os.path.join(os.path.dirname(__file__), '..', 'data', 'maintaintrack.db')
-REPORTS_DIR = os.path.join(os.path.dirname(__file__), '..', 'reports')
+# ── Path resolution ──────────────────────────────────────────────────────
+# In production (PyInstaller exe), __file__ is inside a temp dir.
+# Java sets MAINTAINTRACK_REPORTS_DIR env var to the AppData reports folder.
+# In development, fall back to the local reports/ folder.
+
+def _get_db_path():
+    # Check AppData first (production)
+    appdata = os.environ.get('APPDATA') or os.path.expanduser('~')
+    prod_db = os.path.join(appdata, 'MaintainTrackPro', 'maintaintrack.db')
+    if os.path.exists(prod_db):
+        return prod_db
+    # Development fallback
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data', 'maintaintrack.db')
+
+def _get_reports_dir():
+    # Java passes this env var in production
+    env_dir = os.environ.get('MAINTAINTRACK_REPORTS_DIR')
+    if env_dir:
+        return env_dir
+    # Development fallback
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'reports')
+
+DB_PATH     = _get_db_path()
+REPORTS_DIR = _get_reports_dir()
 OUTPUT_FILE = os.path.join(REPORTS_DIR, f"parts_export_{date.today()}.xlsx")
 
 # ── Colours ───────────────────────────────────────────────────────────────
