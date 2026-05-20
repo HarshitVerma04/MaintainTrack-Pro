@@ -55,6 +55,20 @@
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <!-- Copy bundled Python exes into target for jpackage -->
+            <resource>
+                <directory>${project.basedir}/../bundled</directory>
+                <targetPath>bundled</targetPath>
+                <includes>
+                    <include>*.exe</include>
+                </includes>
+            </resource>
+        </resources>
+
         <plugins>
 
             <!-- ── JavaFX Maven Plugin (mvn javafx:run) ── -->

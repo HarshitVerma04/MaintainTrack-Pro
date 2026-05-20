@@ -173,6 +173,7 @@ dist/
 installer/
 installer2/
 installer3/
+installer4
 custom-jre/
 bundled/
 build/

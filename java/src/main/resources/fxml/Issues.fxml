@@ -108,8 +108,8 @@
 
     </VBox>
 
-    <!-- RIGHT: Alert feed -->
-    <VBox styleClass="dash-card" prefWidth="270" spacing="10">
+    <!-- RIGHT: Alert feed -->  
+    <VBox styleClass="dash-card" prefWidth="320" spacing="10">
         <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
         <Label fx:id="alertCountLabel" text="Active Alerts" styleClass="card-title"/>
         <ListView fx:id="alertListView" VBox.vgrow="ALWAYS"/>

@@ -35,13 +35,14 @@ from openpyxl.utils import get_column_letter
 # In development, fall back to the local reports/ folder.
 
 def _get_db_path():
-    # Check AppData first (production)
     appdata = os.environ.get('APPDATA') or os.path.expanduser('~')
     prod_db = os.path.join(appdata, 'MaintainTrackPro', 'maintaintrack.db')
     if os.path.exists(prod_db):
         return prod_db
-    # Development fallback
-    return os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data', 'maintaintrack.db')
+    cwd_db = os.path.join(os.getcwd(), 'data', 'maintaintrack.db')
+    if os.path.exists(cwd_db):
+        return cwd_db
+    return os.path.join('data', 'maintaintrack.db')
 
 def _get_reports_dir():
     # Java passes this env var in production

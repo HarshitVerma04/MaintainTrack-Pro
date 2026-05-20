@@ -40,16 +40,27 @@ public class ReportService {
      * Checks for bundled exe relative to the working directory.
      */
     private static File getBundledExe(String scriptName) {
-        // When running from jpackage, exe is next to the JAR
-        File inBundled = new File("bundled" + File.separator + scriptName + ".exe");
-        if (inBundled.exists()) return inBundled;
+        // Try multiple locations where the exe might be
+        String[] searchPaths = {
+                // Relative to working dir (dev)
+                "bundled" + File.separator + scriptName + ".exe",
+                // Relative to the app install dir (jpackage)
+                System.getProperty("user.dir") + File.separator
+                        + "bundled" + File.separator + scriptName + ".exe",
+                // Next to the JAR in Program Files
+                new File(ReportService.class.getProtectionDomain()
+                        .getCodeSource().getLocation().getPath())
+                        .getParentFile().getAbsolutePath()
+                        + File.separator + "bundled"
+                        + File.separator + scriptName + ".exe",
+        };
 
-        // Also check relative to the app install dir
-        String appDir = System.getProperty("user.dir");
-        File inApp = new File(appDir + File.separator + "bundled"
-                + File.separator + scriptName + ".exe");
-        if (inApp.exists()) return inApp;
-
+        for (String path : searchPaths) {
+            File f = new File(path);
+            System.out.println("[Report] Checking: " + f.getAbsolutePath()
+                    + " exists=" + f.exists());
+            if (f.exists()) return f;
+        }
         return null;
     }
 

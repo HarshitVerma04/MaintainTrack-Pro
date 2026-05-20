@@ -19,11 +19,17 @@ from fpdf import FPDF
 from fpdf.enums import XPos, YPos
 
 def _get_db_path():
+    # Check AppData first (production install)
     appdata = os.environ.get('APPDATA') or os.path.expanduser('~')
     prod_db = os.path.join(appdata, 'MaintainTrackPro', 'maintaintrack.db')
     if os.path.exists(prod_db):
         return prod_db
-    return os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data', 'maintaintrack.db')
+    # Use Java's working directory (set by ProcessBuilder) — always correct
+    cwd_db = os.path.join(os.getcwd(), 'data', 'maintaintrack.db')
+    if os.path.exists(cwd_db):
+        return cwd_db
+    # Fallback
+    return os.path.join('data', 'maintaintrack.db')
 
 DB_PATH = _get_db_path()
 

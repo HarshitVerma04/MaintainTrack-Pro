@@ -10,6 +10,9 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.util.Objects;
 
+import javafx.geometry.Rectangle2D;
+import javafx.stage.Screen;
+
 /**
  * MaintainTrack Pro — JavaFX entry point.
  *
@@ -26,32 +29,29 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage primaryStage) throws IOException {
-
-        // ── Initialize database (creates tables if not exist) ─────────
         DatabaseInitializer.initialize();
 
-        // ── Load the root layout ──────────────────────────────────────
         FXMLLoader loader = new FXMLLoader(
-                getClass().getResource("/fxml/MainLayout.fxml")
-        );
+                getClass().getResource("/fxml/MainLayout.fxml"));
         Scene scene = new Scene(loader.load(), MIN_WIDTH, MIN_HEIGHT);
-
-        // ── Attach global stylesheet ──────────────────────────────────
         scene.getStylesheets().add(
                 Objects.requireNonNull(
                         getClass().getResource("/styles/app.css")
-                ).toExternalForm()
-        );
+                ).toExternalForm());
 
-        // ── Stage config ──────────────────────────────────────────────
         primaryStage.setTitle(APP_TITLE);
         primaryStage.setMinWidth(MIN_WIDTH);
         primaryStage.setMinHeight(MIN_HEIGHT);
         primaryStage.setScene(scene);
 
-        // ── Wire window-close → stop the alert polling thread ─────────
-        MainLayoutController layoutCtrl = loader.getController();
-        primaryStage.setOnCloseRequest(layoutCtrl::onWindowClose);
+        // ── Fix: constrain to screen bounds ──────────────────────────────
+        Screen screen = Screen.getPrimary();
+        Rectangle2D bounds = screen.getVisualBounds();
+        primaryStage.setX(bounds.getMinX());
+        primaryStage.setY(bounds.getMinY());
+        primaryStage.setWidth(Math.min(MIN_WIDTH, bounds.getWidth()));
+        primaryStage.setHeight(Math.min(MIN_HEIGHT, bounds.getHeight()));
+        // ─────────────────────────────────────────────────────────────────
 
         primaryStage.show();
     }
