@@ -8,6 +8,7 @@
 ![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Maven](https://img.shields.io/badge/Maven-C71A36?style=for-the-badge&logo=apache-maven&logoColor=white)
+![Release](https://img.shields.io/badge/Release-v1.0.1-brightgreen?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
 ---
@@ -17,16 +18,14 @@
 - [Overview](#-overview)
 - [Tech Stack](#-tech-stack)
 - [Features](#-features)
+- [Screens](#-screens)
 - [Database Schema](#-database-schema)
 - [Project Structure](#-project-structure)
 - [Getting Started](#-getting-started)
-- [Implementation Roadmap](#-implementation-roadmap)
-  - [Phase 1 — Setup & Data Layer (Days 1–5)](#phase-1--setup--data-layer-days-15)
-  - [Phase 2 — Core Business Logic (Days 6–12)](#phase-2--core-business-logic-days-612)
-  - [Phase 3 — Alert Engine (Days 13–19)](#phase-3--alert-engine-days-1319)
-  - [Phase 4 — Dashboard, Reports & Launch (Days 20–28)](#phase-4--dashboard-reports--launch-days-2028)
+- [Deployment](#-deployment)
 - [Application Flow](#-application-flow)
-- [Auth Roadmap (V2)](#-auth-roadmap-v2)
+- [Team & Phase Split](#-team--phase-split)
+- [V2 Roadmap](#-v2-roadmap)
 - [Contributing](#-contributing)
 
 ---
@@ -38,9 +37,10 @@ MaintainTrack Pro is a **desktop-first, Java + SQLite** operations management pl
 - Tracking every machine and its maintenance schedule
 - Logging breakdowns and maintenance jobs with full traceability
 - Managing spare parts inventory with low-stock alerting
+- Linking issued parts to specific breakdown repairs or PM jobs (work order system)
 - Generating PDF and Excel reports without any manual data wrangling
 
-**Target Industries:** Manufacturing · Facilities Management · Fleet & Transport
+**Target Industries:** Manufacturing · Facilities Management · Fleet & Transport · Defence
 
 | Metric | Impact |
 |--------|--------|
@@ -56,13 +56,15 @@ MaintainTrack Pro is a **desktop-first, Java + SQLite** operations management pl
 | Layer | Technology | Role |
 |-------|-----------|------|
 | **UI Framework** | Java 17 + JavaFX 17 | All screens, navigation, forms (MVC pattern) |
-| **Business Logic** | Java (Service layer) | Maintenance scheduling, stock logic, work orders |
-| **Database Access** | Java JDBC (DAO pattern) | `EquipmentDAO`, `PartDAO`, `IssueRecordDAO`, etc. |
-| **Database** | SQLite (`.db` file) | Single shared file — bridge between Java and Python |
-| **Reporting** | Python 3 + pandas | Called via `ProcessBuilder`; no API required |
-| **Excel Export** | Python 3 + openpyxl | Parts usage, maintenance history spreadsheets |
-| **PDF Export** | Python 3 + fpdf2 | Formatted maintenance report per equipment |
-| **Build Tool** | Apache Maven | Dependency management, packaging, jar output |
+| **Business Logic** | Java (Service layer) | Maintenance scheduling, stock logic, work orders, KPI calculations |
+| **Database Access** | Java JDBC (DAO pattern) | All SQL via typed DAO classes |
+| **Database** | SQLite (`.db` file) | Local file — shared between Java and Python scripts |
+| **Alert Engine** | Java `ScheduledExecutorService` | Background polling every 30s; `Platform.runLater()` for thread-safe UI updates |
+| **PDF Reports** | Python 3 + fpdf2 | Per-equipment maintenance reports; called via `ProcessBuilder` |
+| **Excel Export** | Python 3 + openpyxl | 4-sheet parts usage workbook; called via `ProcessBuilder` |
+| **Build Tool** | Apache Maven | Dependency management, fat JAR packaging |
+| **Packaging** | jlink + jpackage + WiX 3.11 | Standalone Windows `.exe` installer — no Java or Python required on target machine |
+| **Python Bundling** | PyInstaller | Python scripts compiled to `.exe` and bundled inside the installer |
 | **Java IDE** | IntelliJ IDEA | Primary Java development environment |
 | **Python IDE** | VS Code | Python scripts in `/scripts` directory |
 
@@ -70,29 +72,53 @@ MaintainTrack Pro is a **desktop-first, Java + SQLite** operations management pl
 
 ## ✨ Features
 
-- **Asset Registry** — Searchable record of every machine with full maintenance history
-- **Scheduled Maintenance** — Calendar-driven PMs with automatic next-due-date recalculation
-- **Breakdown Logging** — Incident capture with description and resolver tracking
-- **Parts & Stock Control** — Live inventory with issue/return transactions and reorder thresholds
-- **Smart Alerts** — Automatic low-stock and overdue-maintenance flags on the dashboard
-- **Operations Dashboard** — Live KPIs: uptime %, MTBF, cost per asset, parts spend
-- **Activity Feed** — Merged chronological view of all recent actions across all tables
-- **Data Export** — PDF maintenance reports and Excel parts-usage workbooks
+- **Asset Registry** — Searchable record of every machine with location, status, and maintenance schedule
+- **Scheduled Maintenance** — Calendar-driven PMs with automatic `next_maintenance_date` recalculation (`done_on + interval_days`)
+- **Breakdown Logging** — Incident capture with description, resolver, and unresolved status tracking
+- **Parts & Stock Control** — Live inventory with issue/return transactions, reorder thresholds, and low-stock badges
+- **Work Order System** — Issue records optionally linked to a specific breakdown repair or maintenance job for full cost traceability
+- **Smart Alert Engine** — Background polling detects low-stock parts and overdue maintenance; alerts self-resolve when conditions clear
+- **Operations Dashboard** — Live KPI tiles: total equipment, maintenance job count, total parts spend, active alert count
+- **KPIs Screen** — Three-tab analytics: Uptime % per machine (90-day window), MTBF per machine, Cost per asset with proportional bars
+- **Activity Feed** — Filterable merged chronological view of all events across all three log tables (`UNION ALL`)
+- **PDF Maintenance Report** — Formatted report per equipment: profile, maintenance history table, breakdown table, parts cost summary
+- **Excel Parts Export** — 4-sheet workbook: Parts Summary, Issue History, Cost Per Asset, Low Stock Alerts
+- **Standalone Installer** — `.exe` installer bundles Java JRE, JavaFX, and Python scripts — zero prerequisites on target machine
+
+---
+
+## 🖥 Screens
+
+| Screen | Description |
+|--------|-------------|
+| **Dashboard** | KPI tiles, alert feed, cost-per-asset bars, recent activity table |
+| **Equipment** | Full CRUD — add/edit/delete machines, colour-coded status and overdue dates |
+| **Parts & Inventory** | Full CRUD — stock levels, supplier link, low-stock badge, colour-coded qty |
+| **Suppliers** | Full CRUD — contact details, linked to parts |
+| **KPIs & Analytics** | Uptime %, MTBF, Cost Per Asset — all in a 3-tab screen with visual bars |
+| **Activity Feed** | Merged feed with Type / Date / Equipment filters and keyword search |
+| **Reports & Exports** | Generate PDF per equipment; export all parts data to Excel |
+| **Maintenance Log** | Log PM jobs; equipment next-due date recalculates automatically on save |
+| **Breakdowns** | Log incidents; unresolved shown in red; total breakdown badge in header |
+| **Issues & Alerts** | Issue/return parts with optional work order link; real-time alert feed sidebar |
 
 ---
 
 ## 🗄 Database Schema
 
-Six tables with `EQUIPMENT` as the central entity:
+Six tables with `EQUIPMENT` as the central entity. `ISSUE_RECORD` links to both `BREAKDOWN_LOG` and `MAINTENANCE_LOG` for work order traceability.
 
 ```
-SUPPLIER ─────────── supplies ──────────► PART
-                                           │
-                                        tracks
-                                           │
-EQUIPMENT ──── has ──► MAINTENANCE_LOG    ▼
-    │                                 ISSUE_RECORD ◄── uses ── EQUIPMENT
-    └──── has ──► BREAKDOWN_LOG
+SUPPLIER ────── supplies ──────► PART
+                                  │
+                               tracks
+                                  │
+EQUIPMENT ── has ──► MAINTENANCE_LOG    ▼
+    │                            ISSUE_RECORD ◄── uses ── EQUIPMENT
+    └──── has ──► BREAKDOWN_LOG      ▲               ▲
+                       │             │               │
+                       └── work order link ──────────┘
+                           (breakdown_id / maintenance_id)
 ```
 
 ### Tables
@@ -102,11 +128,13 @@ EQUIPMENT ──── has ──► MAINTENANCE_LOG    ▼
 | `EQUIPMENT` | `id` | — | `name`, `location`, `status`, `next_maintenance_date`, `interval_days` |
 | `MAINTENANCE_LOG` | `id` | `equipment_id` | `done_on`, `notes`, `done_by` |
 | `BREAKDOWN_LOG` | `id` | `equipment_id` | `occurred_on`, `description`, `resolved_by` |
-| `PART` | `id` | `supplier_id` | `name`, `qty_on_hand`, `min_qty`, `unit` |
-| `ISSUE_RECORD` | `id` | `part_id`, `equipment_id` | `issued_on`, `qty`, `issued_by`, `type` |
+| `PART` | `id` | `supplier_id` | `name`, `qty_on_hand`, `min_qty`, `unit`, `unit_cost` |
+| `ISSUE_RECORD` | `id` | `part_id`, `equipment_id`, `breakdown_id`\*, `maintenance_id`\* | `issued_on`, `qty`, `issued_by`, `type` |
 | `SUPPLIER` | `id` | — | `name`, `contact_name`, `phone`, `email` |
 
-> **Auth note:** `done_by` and `issued_by` are plain strings in the MVP. When auth is added in V2, they auto-populate from the logged-in session.
+\* Optional FK — null for standalone stock draws, set for work order issues.
+
+> **Note:** `done_by` and `issued_by` are plain strings in the MVP. When auth is added in V2, they auto-populate from the logged-in user session.
 
 ### SQL Schema
 
@@ -124,7 +152,7 @@ CREATE TABLE EQUIPMENT (
     name                  TEXT    NOT NULL,
     location              TEXT,
     status                TEXT    DEFAULT 'Operational',
-    next_maintenance_date DATE,
+    next_maintenance_date TEXT,
     interval_days         INTEGER DEFAULT 30
 );
 
@@ -134,13 +162,14 @@ CREATE TABLE PART (
     name        TEXT    NOT NULL,
     qty_on_hand INTEGER DEFAULT 0,
     min_qty     INTEGER DEFAULT 5,
-    unit        TEXT    DEFAULT 'pcs'
+    unit        TEXT    DEFAULT 'pcs',
+    unit_cost   REAL    DEFAULT 0.0
 );
 
 CREATE TABLE MAINTENANCE_LOG (
     id           INTEGER PRIMARY KEY AUTOINCREMENT,
     equipment_id INTEGER NOT NULL REFERENCES EQUIPMENT(id),
-    done_on      DATE    NOT NULL,
+    done_on      TEXT    NOT NULL,
     notes        TEXT,
     done_by      TEXT
 );
@@ -148,21 +177,25 @@ CREATE TABLE MAINTENANCE_LOG (
 CREATE TABLE BREAKDOWN_LOG (
     id           INTEGER PRIMARY KEY AUTOINCREMENT,
     equipment_id INTEGER NOT NULL REFERENCES EQUIPMENT(id),
-    occurred_on  DATE    NOT NULL,
+    occurred_on  TEXT    NOT NULL,
     description  TEXT,
     resolved_by  TEXT
 );
 
 CREATE TABLE ISSUE_RECORD (
-    id           INTEGER PRIMARY KEY AUTOINCREMENT,
-    part_id      INTEGER NOT NULL REFERENCES PART(id),
-    equipment_id INTEGER NOT NULL REFERENCES EQUIPMENT(id),
-    issued_on    DATE    NOT NULL,
-    qty          INTEGER NOT NULL,
-    issued_by    TEXT,
-    type         TEXT    CHECK(type IN ('issue', 'return'))
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    part_id        INTEGER NOT NULL REFERENCES PART(id),
+    equipment_id   INTEGER NOT NULL REFERENCES EQUIPMENT(id),
+    breakdown_id   INTEGER          REFERENCES BREAKDOWN_LOG(id),
+    maintenance_id INTEGER          REFERENCES MAINTENANCE_LOG(id),
+    issued_on      TEXT    NOT NULL,
+    qty            INTEGER NOT NULL,
+    issued_by      TEXT,
+    type           TEXT    CHECK(type IN ('issue', 'return'))
 );
 ```
+
+`breakdown_id` and `maintenance_id` are added via `ALTER TABLE` migration on first launch if they don't exist — existing databases are upgraded automatically without a reseed.
 
 ---
 
@@ -171,58 +204,83 @@ CREATE TABLE ISSUE_RECORD (
 ```
 maintaintrack-pro/
 │
-├── java/                              ← Maven project (IntelliJ IDEA)
+├── java/                                   ← Maven project (IntelliJ IDEA)
 │   ├── pom.xml
-│   └── src/
-│       └── main/
-│           ├── java/com/maintaintrack/
-│           │   ├── MainApp.java              ← JavaFX entry point
-│           │   ├── controllers/
-│           │   │   ├── DashboardController.java
-│           │   │   ├── EquipmentController.java
-│           │   │   ├── PartController.java
-│           │   │   ├── SupplierController.java
-│           │   │   ├── MaintenanceLogController.java
-│           │   │   ├── BreakdownLogController.java
-│           │   │   └── IssueRecordController.java
-│           │   ├── services/
-│           │   │   ├── EquipmentService.java
-│           │   │   ├── PartService.java
-│           │   │   ├── AlertService.java     ← Phase 3
-│           │   │   └── ReportService.java    ← Phase 4
-│           │   ├── dao/
-│           │   │   ├── DBConnection.java
-│           │   │   ├── EquipmentDAO.java
-│           │   │   ├── PartDAO.java
-│           │   │   ├── SupplierDAO.java
-│           │   │   ├── MaintenanceLogDAO.java
-│           │   │   ├── BreakdownLogDAO.java
-│           │   │   └── IssueRecordDAO.java
-│           │   └── models/
-│           │       ├── Equipment.java
-│           │       ├── Part.java
-│           │       ├── Supplier.java
-│           │       ├── MaintenanceLog.java
-│           │       ├── BreakdownLog.java
-│           │       └── IssueRecord.java
-│           └── resources/
-│               ├── fxml/
-│               │   ├── Dashboard.fxml
-│               │   ├── Equipment.fxml
-│               │   ├── Parts.fxml
-│               │   └── ...
-│               └── styles/
-│                   └── app.css
+│   └── src/main/
+│       ├── java/com/maintaintrack/
+│       │   ├── MainApp.java                ← JavaFX entry point + screen bounds fix
+│       │   ├── controllers/
+│       │   │   ├── MainLayoutController.java   ← sidebar nav + alert polling lifecycle
+│       │   │   ├── DashboardController.java    ← KPI tiles, alert feed, activity table
+│       │   │   ├── KpisController.java         ← 3-tab KPI screen (uptime/MTBF/cost)
+│       │   │   ├── ActivityController.java     ← filtered UNION feed
+│       │   │   ├── ReportsController.java      ← PDF + Excel triggers
+│       │   │   ├── EquipmentController.java
+│       │   │   ├── PartController.java
+│       │   │   ├── SupplierController.java
+│       │   │   ├── MaintenanceController.java
+│       │   │   ├── BreakdownController.java
+│       │   │   └── IssueController.java        ← work order dropdowns + alert feed
+│       │   ├── services/
+│       │   │   ├── EquipmentService.java
+│       │   │   ├── PartService.java
+│       │   │   ├── SupplierService.java
+│       │   │   ├── MaintenanceLogService.java  ← next-due recalculation logic
+│       │   │   ├── BreakdownLogService.java
+│       │   │   ├── IssueRecordService.java     ← transactional stock update
+│       │   │   ├── WorkOrderService.java       ← traceability aggregator
+│       │   │   ├── AlertService.java           ← low-stock + overdue detection
+│       │   │   ├── AlertPollingService.java    ← ScheduledExecutorService wrapper
+│       │   │   ├── DashboardService.java       ← KPI SQL queries
+│       │   │   ├── KpiService.java             ← uptime%, MTBF, cost per asset
+│       │   │   └── ReportService.java          ← ProcessBuilder bridge to Python
+│       │   ├── dao/
+│       │   │   ├── DBConnection.java           ← dev/prod path resolution
+│       │   │   ├── DatabaseInitializer.java    ← schema creation + migrations
+│       │   │   ├── EquipmentDAO.java
+│       │   │   ├── PartDAO.java
+│       │   │   ├── SupplierDAO.java
+│       │   │   ├── MaintenanceLogDAO.java
+│       │   │   ├── BreakdownLogDAO.java
+│       │   │   └── IssueRecordDAO.java         ← findByBreakdown + findByMaintenance
+│       │   └── models/
+│       │       ├── Equipment.java
+│       │       ├── Part.java
+│       │       ├── Supplier.java
+│       │       ├── MaintenanceLog.java
+│       │       ├── BreakdownLog.java
+│       │       ├── IssueRecord.java            ← breakdownId + maintenanceId fields
+│       │       └── Alert.java                  ← type, severity, icon, timestamp
+│       └── resources/
+│           ├── fxml/
+│           │   ├── MainLayout.fxml             ← sidebar + content area shell
+│           │   ├── Dashboard.fxml
+│           │   ├── Kpis.fxml
+│           │   ├── Activity.fxml
+│           │   ├── Reports.fxml
+│           │   ├── Equipment.fxml
+│           │   ├── Parts.fxml
+│           │   ├── Suppliers.fxml
+│           │   ├── Maintenance.fxml
+│           │   ├── Breakdown.fxml
+│           │   └── Issues.fxml
+│           └── styles/
+│               └── app.css
 │
-├── scripts/                           ← Python utilities (VS Code)
-│   ├── requirements.txt
-│   ├── generate_report.py             ← PDF maintenance report
-│   ├── export_parts.py                ← Excel parts usage export
-│   └── seed_db.py                     ← Dev seed data
+├── scripts/                                ← Python utilities
+│   ├── requirements.txt                    ← fpdf2, openpyxl, pandas
+│   ├── generate_report.py                  ← PDF report (fpdf2); PyInstaller-safe paths
+│   ├── export_parts.py                     ← Excel export (openpyxl); 4 sheets
+│   └── seed_db.py                          ← dev seed data with --reset flag
+│
+├── bundled/                                ← PyInstaller output (gitignored)
+│   ├── generate_report.exe
+│   └── export_parts.exe
 │
 ├── data/
-│   └── maintaintrack.db               ← Shared SQLite file
+│   └── maintaintrack.db                    ← dev SQLite file (gitignored)
 │
+├── .gitignore
 └── README.md
 ```
 
@@ -235,7 +293,7 @@ maintaintrack-pro/
 | Tool | Version | Install |
 |------|---------|---------|
 | Java JDK | 17+ | [adoptium.net](https://adoptium.net) |
-| JavaFX SDK | 17+ | [gluonhq.com/products/javafx](https://gluonhq.com/products/javafx) |
+| JavaFX SDK | 17.0.19 | [gluonhq.com/products/javafx](https://gluonhq.com/products/javafx) |
 | Apache Maven | 3.8+ | [maven.apache.org](https://maven.apache.org) |
 | Python | 3.10+ | [python.org](https://python.org) |
 | IntelliJ IDEA | Latest | [jetbrains.com](https://jetbrains.com/idea) |
@@ -245,175 +303,119 @@ maintaintrack-pro/
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-org/maintaintrack-pro.git
-cd maintaintrack-pro
+git clone https://github.com/HarshitVerma04/MaintainTrack-Pro.git
+cd MaintainTrack-Pro
 
-# 2. Install Python dependencies
-pip install -r scripts/requirements.txt
+# 2. Create Python venv and install dependencies
+cd scripts
+python -m venv venv
+venv\Scripts\activate        # Windows
+pip install -r requirements.txt
+cd ..
 
-# 3. Initialise the database
-python3 scripts/seed_db.py
+# 3. Run the Java app once to create the database schema
+# (Use IntelliJ Run button or:)
+# cd java && mvn clean javafx:run
 
-# 4. Build and run the Java app
+# 4. Seed the database with sample data
+python scripts/seed_db.py
+
+# 5. Run the app
+# IntelliJ: press the green ▶ Run button (MainApp run config)
+# Terminal: cd java && mvn clean javafx:run
+```
+
+### IntelliJ Run Configuration
+
+The run configuration must have **Working Directory** set to the project root (`maintaintrack-pro/`), not the `java/` subfolder. This ensures `data/maintaintrack.db` and `scripts/` resolve correctly.
+
+VM Options required:
+```
+--module-path "C:\javafx-sdk-17.0.19\lib" --add-modules javafx.controls,javafx.fxml
+```
+
+### Reseed with fresh data
+
+```bash
+python scripts/seed_db.py --reset
+```
+
+---
+
+## 📦 Deployment
+
+The app ships as a fully standalone Windows `.exe` installer — no Java, Python, or JavaFX required on the target machine.
+
+### Production Database Location
+
+In production the database lives at:
+```
+C:\Users\<name>\AppData\Roaming\MaintainTrackPro\maintaintrack.db
+```
+
+`DBConnection.java` detects dev vs prod automatically — if `scripts/` folder doesn't exist (installed build), it uses AppData. Database survives uninstalls and app updates.
+
+### Building the Installer
+
+**Step 1 — Bundle Python scripts with PyInstaller**
+
+```bash
+scripts\venv\Scripts\activate
+pyinstaller --onefile scripts/generate_report.py --distpath bundled/
+pyinstaller --onefile scripts/export_parts.py --distpath bundled/
+```
+
+**Step 2 — Build the fat JAR**
+
+```bash
 cd java
-mvn clean javafx:run
+mvn clean package
+cd ..
 ```
 
-### Python dependencies (`scripts/requirements.txt`)
+**Step 3 — Copy bundled exes into target**
 
-```
-pandas==2.2.0
-openpyxl==3.1.2
-fpdf2==2.7.9
-```
-
----
-
-## 🗺 Implementation Roadmap
-
-> **Total: 28 days across 4 phases.**  
-> Each phase has clear exit criteria — do not advance until the current phase is stable.
-
----
-
-### Phase 1 — Setup & Data Layer (Days 1–5)
-
-**Goal:** Get the schema right before touching any logic. All downstream work depends on this.
-
-| Day | Task | Deliverable | Tech |
-|-----|------|-------------|------|
-| 1 | Project scaffold — Maven `pom.xml`, folder structure, Python venv | Both IDEs set up and building | Maven + pip |
-| 2 | Database schema — all 6 tables with FK constraints | `maintaintrack.db` created, schema verified with test inserts | SQLite + JDBC |
-| 3 | Equipment CRUD screen — add, edit, delete, list machines | Working JavaFX form writing to `EQUIPMENT` table | JavaFX + JDBC |
-| 4 | Parts CRUD screen — add, edit, delete, list spare parts | Working JavaFX form writing to `PART` table | JavaFX + JDBC |
-| 5 | Suppliers CRUD screen — add, edit, delete, list suppliers | Working JavaFX form writing to `SUPPLIER` table | JavaFX + JDBC |
-
-**Rules:**
-- No business logic this phase — pure reads and writes only
-- Validate all FK constraints with test inserts before Day 3
-- Use a DB viewer (e.g. DB Browser for SQLite) to inspect data visually
-
-**Exit Criteria:**
-- [ ] All 6 tables exist with correct types and FK constraints
-- [ ] Equipment, Parts, Suppliers screens allow full CRUD without errors
-- [ ] At least 3 equipment records and 5 parts can be inserted and retrieved cleanly
-
----
-
-### Phase 2 — Core Business Logic (Days 6–12)
-
-**Goal:** Make the workflows come alive — scheduling, stock tracking, and full traceability.
-
-| Day | Task | Deliverable | Tech |
-|-----|------|-------------|------|
-| 6 | Maintenance log form — capture date, notes, done_by | `MAINTENANCE_LOG` row created on submit | Java + JDBC |
-| 7 | Next-due date recalculation — `done_on + interval_days` | `EQUIPMENT.next_maintenance_date` auto-updates after logging | Java (date arithmetic) |
-| 8 | Breakdown log form — capture occurred_on, description, resolved_by | `BREAKDOWN_LOG` row created; optional entry | Java + JDBC |
-| 9 | Work order system — link breakdown to equipment + parts used | Work order stored with `equipment_id` FK | Java + JDBC |
-| 10 | Issue / return form — log part transactions with quantity | `ISSUE_RECORD` row created; `type` field captures direction | Java + JDBC |
-| 11 | Stock quantity update — subtract issued qty, add returned qty | `PART.qty_on_hand` reflects every transaction correctly | Java (transactional) |
-| 12 | Parts-link logic — connect `ISSUE_RECORD` to equipment + maintenance | Full traceability: part → job → equipment | Java + JDBC joins |
-
-**Key Logic:**
-- **Next-due formula:** `next_maintenance_date = done_on + interval_days`
-- **Stock update is transactional** — if `ISSUE_RECORD` insert fails, `qty_on_hand` must NOT change
-- **`type` field** in `ISSUE_RECORD` — `'issue'` decrements, `'return'` increments
-- Breakdown form is **optional** — not every equipment check finds a fault
-
-**Exit Criteria:**
-- [ ] Logging a maintenance job auto-updates `next_maintenance_date` correctly
-- [ ] Issuing a part decrements `qty_on_hand`; returning increments it
-- [ ] `ISSUE_RECORD` correctly links to both `part_id` and `equipment_id`
-- [ ] Stock updates are atomic — partial failures leave inventory unchanged
-
----
-
-### Phase 3 — Alert Engine (Days 13–19)
-
-**Goal:** Build the intelligence layer — proactive detection of problems before users notice them.
-
-| Day | Task | Deliverable | Tech |
-|-----|------|-------------|------|
-| 13 | Low-stock detection — compare `qty_on_hand` vs `min_qty` for all parts | List of below-threshold parts generated on demand | Java + JDBC |
-| 14 | Overdue maintenance detection — compare `next_maintenance_date` vs today | List of overdue equipment generated | Java (`LocalDate.now()`) |
-| 15 | Alert data model — represent active alerts with type, severity, timestamp | `Alert` model class + in-memory alert store | Java |
-| 16 | Dashboard alert feed — surface active alerts on the home screen | Alerts visible on dashboard, colour-coded by severity | JavaFX + CSS |
-| 17 | Background polling — schedule alert checks every N minutes | Poll runs without user interaction | `ScheduledExecutorService` |
-| 18 | UI notification dispatch — push alert messages into the dashboard feed | Alert text shown in alert pane in real time | `Platform.runLater()` |
-| 19 | Alert resolution — mark alert as resolved when condition clears | Alert disappears when stock is refilled or job is logged | Condition re-check on DB write |
-
-**Background Thread Pattern (Java Desktop):**
-
-```java
-// AlertService.java
-ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-scheduler.scheduleAtFixedRate(() -> {
-    List<Alert> alerts = checkAllConditions();  // DB reads
-    Platform.runLater(() -> dashboardController.updateAlerts(alerts));
-}, 0, 5, TimeUnit.MINUTES);
+```powershell
+mkdir java\target\bundled
+copy bundled\generate_report.exe java\target\bundled\generate_report.exe
+copy bundled\export_parts.exe java\target\bundled\export_parts.exe
 ```
 
-> ⚠️ **Never update JavaFX UI nodes from a background thread.** Always wrap UI updates in `Platform.runLater()`.
+**Step 4 — Build custom JRE with JavaFX baked in**
 
-**Exit Criteria:**
-- [ ] A part with `qty_on_hand < min_qty` automatically appears as an alert on the dashboard
-- [ ] Equipment with `next_maintenance_date < today` shows as overdue
-- [ ] Alerts self-resolve when the underlying condition is fixed
-- [ ] Background polling runs without user interaction and does not block the UI
+Download JavaFX 17 jmods from gluonhq.com, extract to `C:\javafx-jmods-17.0.19`, then:
 
----
-
-### Phase 4 — Dashboard, Reports & Launch (Days 20–28)
-
-**Goal:** Assembly and quality. No new features — surface existing data, export it, and ship it.
-
-| Day | Task | Deliverable | Tech |
-|-----|------|-------------|------|
-| 20 | Dashboard layout — KPI tiles, alert feed, navigation bar | Dashboard renders with live data | JavaFX FXML |
-| 21 | KPI: Uptime % — calculated from `BREAKDOWN_LOG` downtimes | Uptime % shown per machine | SQL aggregation |
-| 22 | KPI: MTBF — mean time between failures per equipment | MTBF shown alongside each asset | Java date math |
-| 23 | KPI: Cost per asset — total parts cost from `ISSUE_RECORD` | Cost per equipment displayed on dashboard | `SQL GROUP BY` |
-| 24 | Activity feed — merged view of maintenance, breakdowns, issues | Single sorted list from 3 tables chronologically | `SQL UNION` |
-| 25 | PDF maintenance report — formatted report per equipment | Downloadable PDF generated by Python | Python + fpdf2 |
-| 26 | Excel parts usage export — parts spend and usage over a time period | Downloadable XLSX | Python + openpyxl |
-| 27 | Full QA pass — end-to-end test all workflows | No critical bugs; all exit criteria across all phases met | Manual + JUnit |
-| 28 | Packaging & deployment — build fat JAR, ship to first team | App running on target machine | `mvn package` |
-
-**Python Bridge Pattern:**
-
-```java
-// ReportService.java — calls Python from Java
-ProcessBuilder pb = new ProcessBuilder(
-    "python3", "scripts/generate_report.py",
-    "--equipment-id", String.valueOf(equipmentId),
-    "--output", outputPath
-);
-pb.directory(new File(System.getProperty("user.dir")));
-pb.start().waitFor();
+```powershell
+& "C:\Program Files\Java\jdk-23\bin\jlink.exe" `
+  --no-header-files --no-man-pages --compress=2 `
+  --module-path "C:\Program Files\Java\jdk-23\jmods;C:\javafx-jmods-17.0.19" `
+  --add-modules java.base,java.sql,java.desktop,java.logging,javafx.controls,javafx.fxml,javafx.graphics,javafx.base `
+  --output custom-jre
 ```
 
-**Activity Feed SQL:**
+**Step 5 — Run jpackage**
 
-```sql
-SELECT 'maintenance' AS type, done_on AS event_date, notes AS detail, equipment_id
-FROM MAINTENANCE_LOG
-UNION ALL
-SELECT 'breakdown', occurred_on, description, equipment_id
-FROM BREAKDOWN_LOG
-UNION ALL
-SELECT 'issue', issued_on, CAST(qty AS TEXT) || ' × ' || part_id, equipment_id
-FROM ISSUE_RECORD
-ORDER BY event_date DESC
-LIMIT 50;
+Requires [WiX Toolset 3.11](https://github.com/wixtoolset/wix3/releases/tag/wix3112rtm) installed and on PATH.
+
+```powershell
+& "C:\Program Files\Java\jdk-23\bin\jpackage.exe" `
+  --input java/target `
+  --name "MaintainTrack Pro" `
+  --main-jar maintaintrack-pro-1.0.0.jar `
+  --main-class com.maintaintrack.MainApp `
+  --type exe `
+  --dest installer `
+  --runtime-image custom-jre `
+  --win-shortcut --win-menu --win-dir-chooser `
+  --app-version 1.0.1 `
+  --vendor "MaintainTrack"
 ```
 
-**Launch Checklist:**
-- [ ] Dashboard shows live KPIs: uptime, MTBF, cost per asset, parts spend
-- [ ] Activity feed shows merged timeline of all recent actions
-- [ ] PDF and Excel exports download correctly with accurate data
-- [ ] All Phase 1–3 workflows pass end-to-end manual testing
-- [ ] No unresolved critical bugs
-- [ ] Fat JAR builds cleanly via `mvn package`
+> **Note:** Windows SmartScreen will warn on first run since the exe is unsigned. Click "More info → Run anyway". This is expected for software without a code signing certificate.
+
+### Download
+
+Pre-built installer available on the [Releases page](https://github.com/HarshitVerma04/MaintainTrack-Pro/releases).
 
 ---
 
@@ -422,40 +424,81 @@ LIMIT 50;
 ```
 Open Dashboard
 ├── Equipment Side
-│   ├── View equipment list (all machines + status)
-│   └── Select equipment → Open profile
-│       ├── Maintenance due?
-│       │   ├── YES → Log maintenance (date, notes, done_by)
-│       │   │         → Auto-update next_maintenance_date
-│       │   └── NO  → Optionally log breakdown
-│       └── Dashboard updated
+│   ├── View equipment list (all machines + status + overdue flag)
+│   └── Select equipment → Maintenance Log
+│       ├── Log PM job (date, notes, done_by)
+│       │   → next_maintenance_date auto-recalculates
+│       └── Log breakdown (description, resolved_by)
 │
-└── Parts Side
-    ├── View parts list (stock levels + low-stock alerts)
-    └── Select part → Open details
-        ├── Stock below minimum?
-        │   ├── YES → Flag alert on dashboard
-        │   └── NO  → Issue / return part
-        │               → Update qty_on_hand
-        └── Dashboard updated
+├── Parts Side
+│   ├── View parts list (stock levels + low-stock badges)
+│   └── Issues & Alerts screen
+│       ├── Issue / return a part (transactional qty update)
+│       ├── Link to breakdown → repair work order
+│       └── Link to maintenance job → PM consumables tracking
+│
+└── Dashboard & Analytics
+    ├── KPI tiles (equipment count, maintenance jobs, spend, alerts)
+    ├── Alert feed (overdue maintenance + low stock — auto-polling)
+    ├── KPIs screen (uptime %, MTBF, cost per asset)
+    ├── Activity feed (merged chronological view, filterable)
+    └── Reports (PDF per equipment, Excel parts export)
 ```
 
 ---
 
-## 🔐 Auth Roadmap (V2)
+## 👥 Team & Phase Split
 
-Auth was deliberately cut from the MVP — it alone consumes a full development week and is unnecessary for a small trusted internal team.
+| Phase | Days | Owner | Scope |
+|-------|------|-------|-------|
+| **Phase 1** | 1–5 | Harshit | Project scaffold, DB schema, Equipment/Parts/Suppliers CRUD |
+| **Phase 2** | 6–9 | Harshit | Maintenance scheduler, Breakdown log, Work order system (Days 8-9) |
+| **Phase 2** | 10–12 | Adarsh | Issue/Return form, transactional stock update |
+| **Phase 3** | 13–19 | Adarsh | Alert engine, background polling, `AlertPollingService` |
+| **Phase 4** | 20–28 | Harshit | Dashboard, KPIs, Activity Feed, PDF/Excel reports, deployment |
+
+**Branch convention used:**
+- `AdarshVishwaraj-phase3-complete-set-of-files-with-previous-phases-combined` — Adarsh
+- `phase4/dashboard-kpis` — Harshit
+- `test/full-merge` — integration testing branch before merging to `main`
+
+---
+
+## 🗺 V2 Roadmap
+
+### Authentication
+
+Auth was deliberately excluded from the MVP — it consumes a full development week and is unnecessary for a small trusted internal team.
 
 | Component | MVP (Now) | V2 (With Auth) |
 |-----------|-----------|----------------|
 | `done_by` / `issued_by` | Typed manually | Auto-filled from session |
-| Access control | None — open to all | Role-based: Technician vs Manager |
-| Login screen | Not present | Username + password form |
-| Session management | Not present | Java session object |
+| Access control | None | Role-based: Technician vs Manager |
+| Login screen | Not present | Username + password + JWT |
 | Dashboard scope | All data visible | Filtered to assigned equipment |
 | Report access | Anyone | Manager role only |
 
-**When to add auth:** When the team grows beyond ~5 people, or when you need audit trails tied to specific individuals rather than typed names.
+### Cloud Sync + Web Version
+
+The planned V2 architecture:
+
+```
+Desktop App (JavaFX)     Web App (React)
+       │                       │
+       ▼                       ▼
+  Local SQLite  ◄─ sync ─►  Cloud PostgreSQL
+                   REST API
+                (Spring Boot)
+```
+
+**Phase plan:**
+- **V2.1** — Spring Boot REST API wrapping existing service/DAO layer
+- **V2.2** — JWT auth, User table, login screen in JavaFX
+- **V2.3** — Cloud sync (push-on-save with offline queue)
+- **V2.4** — React web frontend consuming the same API
+- **V2.5** — Deploy to cloud (Vercel + Railway + Supabase)
+
+The existing Java service and DAO classes are reused without modification — only the controllers change (JavaFX → `@RestController`).
 
 ---
 
@@ -467,12 +510,6 @@ Auth was deliberately cut from the MVP — it alone consumes a full development 
 4. Push: `git push origin feature/your-feature-name`
 5. Open a Pull Request — include which phase the change belongs to
 
-**Branch naming convention:**
-- `phase1/equipment-crud`
-- `phase2/maintenance-scheduler`
-- `phase3/alert-engine`
-- `phase4/dashboard-kpis`
-
 ---
 
 ## 📄 License
@@ -482,5 +519,5 @@ MIT License — see [LICENSE](LICENSE) for details.
 ---
 
 <div align="center">
-  <strong>MaintainTrack Pro</strong> — Built for the teams that keep everything running.
+  <strong>MaintainTrack Pro v1.0.1</strong> — Built for the teams that keep everything running.
 </div>
