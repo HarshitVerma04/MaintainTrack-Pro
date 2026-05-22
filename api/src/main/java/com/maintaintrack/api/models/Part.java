@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.validation.constraints.NotBlank;
 
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
@@ -18,6 +19,7 @@ public class Part {
     @JoinColumn(name = "supplier_id")
     private Supplier supplier;
 
+    @NotBlank(message = "Name is required")
     @Column(nullable = false)
     private String name;
 
