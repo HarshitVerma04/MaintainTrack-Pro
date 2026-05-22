@@ -5,7 +5,7 @@
 
 -- ── 1. SUPPLIER ─────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS supplier (
-                                        id           SERIAL PRIMARY KEY,
+                                        id           BIGSERIAL PRIMARY KEY,
                                         name         TEXT   NOT NULL,
                                         contact_name TEXT,
                                         phone        TEXT,
@@ -16,23 +16,23 @@ CREATE TABLE IF NOT EXISTS supplier (
 
 -- ── 2. EQUIPMENT ────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS equipment (
-                                         id                    SERIAL PRIMARY KEY,
+                                         id                    BIGSERIAL PRIMARY KEY,
                                          name                  TEXT   NOT NULL,
                                          location              TEXT,
                                          status                TEXT   DEFAULT 'Operational',
                                          next_maintenance_date TEXT,
-                                         interval_days         INTEGER DEFAULT 30,
+                                         interval_days         BIGINT DEFAULT 30,
                                          updated_at            TIMESTAMP DEFAULT NOW(),
     synced                BOOLEAN   DEFAULT FALSE
     );
 
 -- ── 3. PART ─────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS part (
-                                    id          SERIAL  PRIMARY KEY,
-                                    supplier_id INTEGER REFERENCES supplier(id),
+                                    id          BIGSERIAL  PRIMARY KEY,
+                                    supplier_id BIGINT REFERENCES supplier(id),
     name        TEXT    NOT NULL,
-    qty_on_hand INTEGER DEFAULT 0,
-    min_qty     INTEGER DEFAULT 5,
+    qty_on_hand BIGINT DEFAULT 0,
+    min_qty     BIGINT DEFAULT 5,
     unit        TEXT    DEFAULT 'pcs',
     unit_cost   NUMERIC DEFAULT 0.0,
     updated_at  TIMESTAMP DEFAULT NOW(),
@@ -41,8 +41,8 @@ CREATE TABLE IF NOT EXISTS part (
 
 -- ── 4. MAINTENANCE_LOG ──────────────────────────────────────
 CREATE TABLE IF NOT EXISTS maintenance_log (
-                                               id           SERIAL  PRIMARY KEY,
-                                               equipment_id INTEGER NOT NULL REFERENCES equipment(id),
+                                               id           BIGSERIAL  PRIMARY KEY,
+                                               equipment_id BIGINT NOT NULL REFERENCES equipment(id),
     done_on      TEXT    NOT NULL,
     notes        TEXT,
     done_by      TEXT,
@@ -52,8 +52,8 @@ CREATE TABLE IF NOT EXISTS maintenance_log (
 
 -- ── 5. BREAKDOWN_LOG ────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS breakdown_log (
-                                             id           SERIAL  PRIMARY KEY,
-                                             equipment_id INTEGER NOT NULL REFERENCES equipment(id),
+                                             id           BIGSERIAL  PRIMARY KEY,
+                                             equipment_id BIGINT NOT NULL REFERENCES equipment(id),
     occurred_on  TEXT    NOT NULL,
     description  TEXT,
     resolved_by  TEXT,
@@ -63,13 +63,13 @@ CREATE TABLE IF NOT EXISTS breakdown_log (
 
 -- ── 6. ISSUE_RECORD ─────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS issue_record (
-                                            id             SERIAL  PRIMARY KEY,
-                                            part_id        INTEGER NOT NULL REFERENCES part(id),
-    equipment_id   INTEGER NOT NULL REFERENCES equipment(id),
-    breakdown_id   INTEGER          REFERENCES breakdown_log(id),
-    maintenance_id INTEGER          REFERENCES maintenance_log(id),
+                                            id             BIGSERIAL  PRIMARY KEY,
+                                            part_id        BIGINT NOT NULL REFERENCES part(id),
+    equipment_id   BIGINT NOT NULL REFERENCES equipment(id),
+    breakdown_id   BIGINT          REFERENCES breakdown_log(id),
+    maintenance_id BIGINT          REFERENCES maintenance_log(id),
     issued_on      TEXT    NOT NULL,
-    qty            INTEGER NOT NULL,
+    qty            BIGINT NOT NULL,
     issued_by      TEXT,
     type           TEXT    CHECK(type IN ('issue','return')),
     updated_at     TIMESTAMP DEFAULT NOW(),
@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS issue_record (
 
 -- ── 7. APP_USER ─────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS app_user (
-                                        id            SERIAL PRIMARY KEY,
+                                        id            BIGSERIAL PRIMARY KEY,
                                         username      TEXT   NOT NULL UNIQUE,
                                         email         TEXT   NOT NULL UNIQUE,
                                         password_hash TEXT   NOT NULL,
