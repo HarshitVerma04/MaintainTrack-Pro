@@ -4,6 +4,7 @@ import com.maintaintrack.api.models.Supplier;
 import com.maintaintrack.api.services.SupplierService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -31,13 +32,13 @@ public class SupplierController {
     }
 
     @PostMapping
-    public ResponseEntity<Supplier> create(@RequestBody Supplier supplier) {
+    public ResponseEntity<Supplier> create(@Valid @RequestBody Supplier supplier) {
         return ResponseEntity.ok(service.create(supplier));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Supplier> update(@PathVariable Long id,
-                                           @RequestBody Supplier supplier) {
+                                           @Valid @RequestBody Supplier supplier) {
         return service.update(id, supplier)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

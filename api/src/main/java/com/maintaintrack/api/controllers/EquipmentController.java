@@ -4,6 +4,7 @@ import com.maintaintrack.api.models.Equipment;
 import com.maintaintrack.api.services.EquipmentService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -36,13 +37,13 @@ public class EquipmentController {
     }
 
     @PostMapping
-    public ResponseEntity<Equipment> create(@RequestBody Equipment equipment) {
+    public ResponseEntity<Equipment> create(@Valid @RequestBody Equipment equipment) {
         return ResponseEntity.ok(service.create(equipment));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Equipment> update(@PathVariable Long id,
-                                            @RequestBody Equipment equipment) {
+                                            @Valid @RequestBody Equipment equipment) {
         return service.update(id, equipment)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

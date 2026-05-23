@@ -4,6 +4,7 @@ import com.maintaintrack.api.models.Part;
 import com.maintaintrack.api.services.PartService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -37,7 +38,7 @@ public class PartController {
 
     @PostMapping
     public ResponseEntity<Part> create(
-            @RequestBody Part part,
+            @Valid @RequestBody Part part,
             @RequestParam(required = false) Long supplierId) {
         return ResponseEntity.ok(service.create(part, supplierId));
     }
@@ -45,7 +46,7 @@ public class PartController {
     @PutMapping("/{id}")
     public ResponseEntity<Part> update(
             @PathVariable Long id,
-            @RequestBody Part part,
+            @Valid @RequestBody Part part,
             @RequestParam(required = false) Long supplierId) {
         return service.update(id, part, supplierId)
                 .map(ResponseEntity::ok)
