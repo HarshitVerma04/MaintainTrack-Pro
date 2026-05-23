@@ -2,15 +2,12 @@ package com.maintaintrack.services;
 
 import com.maintaintrack.dao.PartDAO;
 import com.maintaintrack.models.Part;
+import com.maintaintrack.sync.SyncService;
+import com.maintaintrack.sync.SyncTask;
 
 import java.sql.SQLException;
 import java.util.List;
 
-/**
- * PartService — sits between PartController and PartDAO.
- * Validates input before passing to the DAO.
- * Phase 3: low-stock detection queries will also come through here.
- */
 public class PartService {
 
     private final PartDAO dao = new PartDAO();
@@ -18,15 +15,24 @@ public class PartService {
     public void addPart(Part p) throws SQLException {
         validate(p);
         dao.insert(p);
+        SyncService.getInstance().push(new SyncTask(
+                "PART", p.getId(),
+                toJson(p), SyncTask.Operation.INSERT));
     }
 
     public void updatePart(Part p) throws SQLException {
         validate(p);
         dao.update(p);
+        SyncService.getInstance().push(new SyncTask(
+                "PART", p.getId(),
+                toJson(p), SyncTask.Operation.UPDATE));
     }
 
     public void deletePart(int id) throws SQLException {
         dao.delete(id);
+        SyncService.getInstance().push(new SyncTask(
+                "PART", id,
+                "{\"id\":" + id + "}", SyncTask.Operation.DELETE));
     }
 
     public List<Part> getAllParts() throws SQLException {
@@ -45,7 +51,22 @@ public class PartService {
         return dao.search(keyword);
     }
 
-    // ── Validation ────────────────────────────────────────────────────────
+    private String toJson(Part p) {
+        return String.format(
+                "{\"name\":\"%s\",\"qtyOnHand\":%d,\"minQty\":%d," +
+                        "\"unit\":\"%s\",\"unitCost\":%.2f,\"supplierId\":%d}",
+                escape(p.getName()),
+                p.getQtyOnHand(),
+                p.getMinQty(),
+                escape(p.getUnit()),
+                p.getUnitCost(),
+                p.getSupplierId()
+        );
+    }
+
+    private String escape(String s) {
+        return s == null ? "" : s.replace("\"", "\\\"");
+    }
 
     private void validate(Part p) {
         if (p.getName() == null || p.getName().isBlank())
