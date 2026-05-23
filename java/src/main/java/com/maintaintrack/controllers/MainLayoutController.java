@@ -15,6 +15,7 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import java.util.Objects;
 import javafx.scene.control.Button;
+import com.maintaintrack.sync.SyncService;
 
 import java.io.IOException;
 import java.util.List;
@@ -43,6 +44,8 @@ public class MainLayoutController {
     @FXML private Label  loggedInLabel;
     @FXML private Button btnLogout;
 
+    @FXML private Label syncStatusLabel;
+
     // ── Background poller (Day 17) ────────────────────────────────────────
     private final AlertPollingService poller = new AlertPollingService();
 
@@ -55,6 +58,9 @@ public class MainLayoutController {
     public void initialize() {
         showEquipment();
         startAlertPoller();
+
+        SyncService.getInstance().setStatusCallback(
+                status -> syncStatusLabel.setText(status));
 
         AuthContext auth = AuthContext.getInstance();
         if (auth.isLoggedIn()) {

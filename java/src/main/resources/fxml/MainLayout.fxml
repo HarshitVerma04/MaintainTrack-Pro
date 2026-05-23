@@ -68,6 +68,9 @@
                         onAction="#onLogout"
                         style="-fx-text-fill:#ff6b6b;"/>
             </VBox>
+            <Label fx:id="syncStatusLabel"
+                   text="Not synced"
+                   style="-fx-text-fill:#555; -fx-font-size:10px;"/>
 
             <Label text="v2.0.0" styleClass="sidebar-version"/>
         </VBox>

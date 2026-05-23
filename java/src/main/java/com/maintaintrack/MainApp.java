@@ -7,6 +7,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import com.maintaintrack.auth.TokenRefreshService;
+import com.maintaintrack.sync.SyncService;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -31,6 +32,7 @@ public class MainApp extends Application {
     @Override
     public void start(Stage primaryStage) throws IOException {
         DatabaseInitializer.initialize();
+        SyncService.getInstance().start();
 
         // ── Show Login screen first ───────────────────────────────────────
         FXMLLoader loader = new FXMLLoader(
@@ -59,6 +61,7 @@ public class MainApp extends Application {
     @Override
     public void stop() throws Exception {
         TokenRefreshService.getInstance().shutdown();
+        SyncService.getInstance().shutdown();
         super.stop();
     }
 
