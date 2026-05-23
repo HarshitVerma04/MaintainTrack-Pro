@@ -40,14 +40,13 @@ public class IssueRecordController {
             Long partId       = Long.valueOf(body.get("partId").toString());
             Long equipmentId  = Long.valueOf(body.get("equipmentId").toString());
             int  qty          = Integer.parseInt(body.get("qty").toString());
-            String issuedBy   = (String) body.getOrDefault("issuedBy", "system");
             Long breakdownId  = body.containsKey("breakdownId")
                     ? Long.valueOf(body.get("breakdownId").toString()) : null;
             Long maintenanceId = body.containsKey("maintenanceId")
                     ? Long.valueOf(body.get("maintenanceId").toString()) : null;
 
             IssueRecord record = service.issue(
-                    partId, equipmentId, qty, issuedBy, breakdownId, maintenanceId);
+                    partId, equipmentId, qty, breakdownId, maintenanceId);
             return ResponseEntity.ok(record);
 
         } catch (RuntimeException e) {
@@ -61,9 +60,8 @@ public class IssueRecordController {
             Long partId      = Long.valueOf(body.get("partId").toString());
             Long equipmentId = Long.valueOf(body.get("equipmentId").toString());
             int  qty         = Integer.parseInt(body.get("qty").toString());
-            String issuedBy  = (String) body.getOrDefault("issuedBy", "system");
 
-            IssueRecord record = service.returnPart(partId, equipmentId, qty, issuedBy);
+            IssueRecord record = service.returnPart(partId, equipmentId, qty);
             return ResponseEntity.ok(record);
 
         } catch (RuntimeException e) {

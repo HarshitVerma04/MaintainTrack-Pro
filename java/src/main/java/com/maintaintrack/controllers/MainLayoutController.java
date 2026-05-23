@@ -8,6 +8,13 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import javafx.stage.WindowEvent;
+import com.maintaintrack.auth.AuthContext;
+import com.maintaintrack.auth.TokenRefreshService;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
+import java.util.Objects;
+import javafx.scene.control.Button;
 
 import java.io.IOException;
 import java.util.List;
@@ -33,6 +40,9 @@ public class MainLayoutController {
     @FXML private Label sidebarOverdueBadge;
     @FXML private Label sidebarLowStockBadge;
 
+    @FXML private Label  loggedInLabel;
+    @FXML private Button btnLogout;
+
     // ── Background poller (Day 17) ────────────────────────────────────────
     private final AlertPollingService poller = new AlertPollingService();
 
@@ -45,6 +55,14 @@ public class MainLayoutController {
     public void initialize() {
         showEquipment();
         startAlertPoller();
+
+        AuthContext auth = AuthContext.getInstance();
+        if (auth.isLoggedIn()) {
+            loggedInLabel.setText("👤  " + auth.getUsername()
+                    + " (" + auth.getRole() + ")");
+        } else {
+            loggedInLabel.setText("👤  Offline");
+        }
     }
 
     private void startAlertPoller() {
@@ -109,6 +127,32 @@ public class MainLayoutController {
 
         } catch (IOException e) {
             System.err.println("[NAV] Could not load: " + fxmlPath + " — " + e.getMessage());
+        }
+    }
+
+    @FXML
+    private void onLogout() {
+        TokenRefreshService.getInstance().cancelPending();
+        AuthContext.getInstance().clearSession();
+
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/fxml/Login.fxml"));
+            Scene scene = new Scene(loader.load(), 900, 600);
+            scene.getStylesheets().add(
+                    Objects.requireNonNull(
+                            getClass().getResource("/styles/app.css")
+                    ).toExternalForm());
+
+            Stage stage = (Stage) btnLogout.getScene().getWindow();
+            stage.setMinWidth(600);
+            stage.setMinHeight(400);
+            stage.setWidth(900);
+            stage.setHeight(600);
+            stage.setScene(scene);
+            stage.setTitle("MaintainTrack Pro — Sign In");
+        } catch (Exception e) {
+            System.err.println("[Logout] Failed: " + e.getMessage());
         }
     }
 }

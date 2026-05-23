@@ -21,7 +21,7 @@ public class ApiAuthService {
      * Attempts login. Returns the JWT token string on success.
      * Throws RuntimeException with a user-friendly message on failure.
      */
-    public static String login(String username, String password) throws Exception {
+    public static LoginResult login(String username, String password) throws Exception {
         String body = String.format(
                 "{\"username\":\"%s\",\"password\":\"%s\"}",
                 username, password);
@@ -37,7 +37,9 @@ public class ApiAuthService {
                 request, HttpResponse.BodyHandlers.ofString());
 
         if (response.statusCode() == 200) {
-            return extractField(response.body(), "token");
+            String token = extractField(response.body(), "token");
+            String role  = extractField(response.body(), "role");
+            return new LoginResult(token, role != null ? role : "TECHNICIAN");
         } else if (response.statusCode() == 400) {
             String error = extractField(response.body(), "error");
             throw new RuntimeException(error != null
@@ -47,6 +49,8 @@ public class ApiAuthService {
                     "Server error (" + response.statusCode() + "). Try again.");
         }
     }
+
+    public record LoginResult(String token, String role) {}
 
     public static boolean isApiReachable() {
         try {

@@ -1,5 +1,6 @@
 package com.maintaintrack.api.controllers;
 
+import com.maintaintrack.api.config.JwtUtil;
 import com.maintaintrack.api.dto.AuthDto;
 import com.maintaintrack.api.models.AppUser;
 import com.maintaintrack.api.services.AuthService;
@@ -14,9 +15,11 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService service;
+    private final JwtUtil     jwtUtil;
 
-    public AuthController(AuthService service) {
-        this.service = service;
+    public AuthController(AuthService service, JwtUtil jwtUtil) {
+        this.service  = service;
+        this.jwtUtil  = jwtUtil;
     }
 
     @PostMapping("/register")
@@ -54,5 +57,28 @@ public class AuthController {
                 "role", auth.getAuthorities().iterator().next()
                         .getAuthority().replace("ROLE_", "")
         ));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(
+            org.springframework.security.core.Authentication auth) {
+        if (auth == null) return ResponseEntity.status(401).build();
+
+        String username = auth.getName();
+        String role     = auth.getAuthorities().iterator().next()
+                .getAuthority().replace("ROLE_", "");
+
+        String newToken = jwtUtil.generateToken(username, role);
+        return ResponseEntity.ok(Map.of(
+                "token",       newToken,
+                "username",    username,
+                "role",        role,
+                "expiresInMs", 28800000L
+        ));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout() {
+        return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
     }
 }

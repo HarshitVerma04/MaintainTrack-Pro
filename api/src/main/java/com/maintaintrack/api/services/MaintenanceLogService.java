@@ -6,6 +6,7 @@ import com.maintaintrack.api.repositories.EquipmentRepository;
 import com.maintaintrack.api.repositories.MaintenanceLogRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.maintaintrack.api.config.SecurityUtils;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -36,22 +37,19 @@ public class MaintenanceLogService {
     }
 
     @Transactional
-    public MaintenanceLog log(Long equipmentId, String doneOn,
-                              String notes, String doneBy) {
+    public MaintenanceLog log(Long equipmentId, String doneOn, String notes) {
 
         Equipment equipment = equipRepo.findById(equipmentId)
                 .orElseThrow(() -> new RuntimeException("Equipment not found: " + equipmentId));
 
-        // Build the log entry
         MaintenanceLog entry = new MaintenanceLog();
         entry.setEquipment(equipment);
         entry.setDoneOn(doneOn != null ? doneOn : LocalDate.now().toString());
         entry.setNotes(notes);
-        entry.setDoneBy(doneBy);
+        entry.setDoneBy(SecurityUtils.getCurrentUsername()); // ← auto from JWT
         entry.setSynced(true);
         logRepo.save(entry);
 
-        // Auto-update next_maintenance_date on the equipment
         if (equipment.getIntervalDays() != null) {
             LocalDate next = LocalDate.parse(entry.getDoneOn())
                     .plusDays(equipment.getIntervalDays());

@@ -6,6 +6,7 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import com.maintaintrack.auth.TokenRefreshService;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -53,6 +54,12 @@ public class MainApp extends Application {
         primaryStage.setHeight(Math.min(600, bounds.getHeight()));
 
         primaryStage.show();
+    }
+
+    @Override
+    public void stop() throws Exception {
+        TokenRefreshService.getInstance().shutdown();
+        super.stop();
     }
 
     /**

@@ -4,6 +4,7 @@ import com.maintaintrack.api.models.*;
 import com.maintaintrack.api.repositories.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.maintaintrack.api.config.SecurityUtils;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -43,7 +44,7 @@ public class IssueRecordService {
 
     @Transactional
     public IssueRecord issue(Long partId, Long equipmentId,
-                             int qty, String issuedBy,
+                             int qty,
                              Long breakdownId, Long maintenanceId) {
 
         Part part = partRepo.findById(partId)
@@ -66,7 +67,7 @@ public class IssueRecordService {
         record.setPart(part);
         record.setEquipment(equipment);
         record.setQty(qty);
-        record.setIssuedBy(issuedBy);
+        record.setIssuedBy(SecurityUtils.getCurrentUsername());
         record.setIssuedOn(LocalDate.now().toString());
         record.setType("issue");
         record.setSynced(true);
@@ -83,7 +84,7 @@ public class IssueRecordService {
 
     @Transactional
     public IssueRecord returnPart(Long partId, Long equipmentId,
-                                  int qty, String issuedBy) {
+                                  int qty) {
 
         Part part = partRepo.findById(partId)
                 .orElseThrow(() -> new RuntimeException("Part not found: " + partId));
@@ -100,7 +101,7 @@ public class IssueRecordService {
         record.setPart(part);
         record.setEquipment(equipment);
         record.setQty(qty);
-        record.setIssuedBy(issuedBy);
+        record.setIssuedBy(SecurityUtils.getCurrentUsername());
         record.setIssuedOn(LocalDate.now().toString());
         record.setType("return");
         record.setSynced(true);

@@ -42,9 +42,8 @@ public class MaintenanceLogController {
             Long   equipmentId = Long.valueOf(body.get("equipmentId").toString());
             String doneOn      = (String) body.getOrDefault("doneOn", null);
             String notes       = (String) body.getOrDefault("notes", null);
-            String doneBy      = (String) body.getOrDefault("doneBy", "system");
 
-            return ResponseEntity.ok(service.log(equipmentId, doneOn, notes, doneBy));
+            return ResponseEntity.ok(service.log(equipmentId, doneOn, notes));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

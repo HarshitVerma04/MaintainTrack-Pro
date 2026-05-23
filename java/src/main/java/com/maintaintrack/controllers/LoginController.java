@@ -9,6 +9,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
 import java.util.Objects;
+import com.maintaintrack.auth.TokenRefreshService;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -41,12 +42,12 @@ public class LoginController {
             } catch (Exception e) {
                 throw new RuntimeException(e.getMessage());
             }
-        }).thenAcceptAsync(token -> {
-            // Success — store session and navigate to main layout
-            AuthContext.getInstance().setSession(token, username, "ADMIN");
+        }).thenAcceptAsync(result -> {
+            AuthContext.getInstance().setSession(
+                    result.token(), username, result.role());
+            TokenRefreshService.getInstance().scheduleRefresh();
             navigateToMain();
         }, Platform::runLater).exceptionally(ex -> {
-            // Failure — show error on JavaFX thread
             Platform.runLater(() -> {
                 String msg = ex.getCause() != null
                         ? ex.getCause().getMessage()

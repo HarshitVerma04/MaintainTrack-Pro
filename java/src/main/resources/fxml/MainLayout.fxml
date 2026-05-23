@@ -58,7 +58,18 @@
 
             <!-- Spacer pushes version to bottom -->
             <Region VBox.vgrow="ALWAYS"/>
-            <Label text="v1.0.0" styleClass="sidebar-version"/>
+
+            <!-- Logged in user + logout -->
+            <VBox spacing="4">
+                <Label fx:id="loggedInLabel" text="👤  Offline"
+                       style="-fx-text-fill:#888; -fx-font-size:11px;"/>
+                <Button fx:id="btnLogout" text="⏻  Logout"
+                        styleClass="nav-btn" maxWidth="Infinity"
+                        onAction="#onLogout"
+                        style="-fx-text-fill:#ff6b6b;"/>
+            </VBox>
+
+            <Label text="v2.0.0" styleClass="sidebar-version"/>
         </VBox>
     </left>
 
