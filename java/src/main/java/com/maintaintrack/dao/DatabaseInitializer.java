@@ -106,6 +106,9 @@ public class DatabaseInitializer {
             // Run migrations for existing databases
             migrateIssueRecord(conn);
 
+            // V2 sync migrations
+            MigrationRunner.run();
+
             System.out.println("[DB] Schema initialized successfully.");
 
         } catch (SQLException e) {

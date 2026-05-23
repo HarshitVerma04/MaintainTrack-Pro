@@ -17,9 +17,9 @@ public class SupplierDAO {
 
     public void insert(Supplier s) throws SQLException {
         String sql = """
-                INSERT INTO SUPPLIER (name, contact_name, phone, email)
-                VALUES (?, ?, ?, ?);
-                """;
+            INSERT INTO SUPPLIER (name, contact_name, phone, email, updated_at, synced)
+            VALUES (?, ?, ?, ?, datetime('now'), 0);
+            """;
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, s.getName());
@@ -34,10 +34,11 @@ public class SupplierDAO {
 
     public void update(Supplier s) throws SQLException {
         String sql = """
-                UPDATE SUPPLIER
-                SET name = ?, contact_name = ?, phone = ?, email = ?
-                WHERE id = ?;
-                """;
+            UPDATE SUPPLIER
+            SET name = ?, contact_name = ?, phone = ?, email = ?,
+                updated_at = datetime('now'), synced = 0
+            WHERE id = ?;
+            """;
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, s.getName());

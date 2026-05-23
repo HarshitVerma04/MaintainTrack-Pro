@@ -17,9 +17,9 @@ public class BreakdownLogDAO {
 
     public void insert(BreakdownLog log) throws SQLException {
         String sql = """
-                INSERT INTO BREAKDOWN_LOG (equipment_id, occurred_on, description, resolved_by)
-                VALUES (?, ?, ?, ?);
-                """;
+            INSERT INTO BREAKDOWN_LOG (equipment_id, occurred_on, description, resolved_by, updated_at, synced)
+            VALUES (?, ?, ?, ?, datetime('now'), 0);
+            """;
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, log.getEquipmentId());

@@ -178,3 +178,8 @@ custom-jre/
 bundled/
 build/
 java/target/
+
+
+api/.env
+api/target/
+run.ps1

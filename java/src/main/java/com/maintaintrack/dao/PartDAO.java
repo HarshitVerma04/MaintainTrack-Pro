@@ -16,9 +16,9 @@ public class PartDAO {
 
     public void insert(Part p) throws SQLException {
         String sql = """
-                INSERT INTO PART (supplier_id, name, qty_on_hand, min_qty, unit, unit_cost)
-                VALUES (?, ?, ?, ?, ?, ?);
-                """;
+            INSERT INTO PART (supplier_id, name, qty_on_hand, min_qty, unit, unit_cost, updated_at, synced)
+            VALUES (?, ?, ?, ?, ?, ?, datetime('now'), 0);
+            """;
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, p.getSupplierId());
@@ -35,11 +35,12 @@ public class PartDAO {
 
     public void update(Part p) throws SQLException {
         String sql = """
-                UPDATE PART
-                SET supplier_id = ?, name = ?, qty_on_hand = ?,
-                    min_qty = ?, unit = ?, unit_cost = ?
-                WHERE id = ?;
-                """;
+            UPDATE PART
+            SET supplier_id = ?, name = ?, qty_on_hand = ?,
+                min_qty = ?, unit = ?, unit_cost = ?,
+                updated_at = datetime('now'), synced = 0
+            WHERE id = ?;
+            """;
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, p.getSupplierId());

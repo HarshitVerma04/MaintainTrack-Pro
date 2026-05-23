@@ -17,12 +17,11 @@ public class EquipmentDAO {
 
     public void insert(Equipment e) throws SQLException {
         String sql = """
-                INSERT INTO EQUIPMENT (name, location, status, next_maintenance_date, interval_days)
-                VALUES (?, ?, ?, ?, ?);
-                """;
+            INSERT INTO EQUIPMENT (name, location, status, next_maintenance_date, interval_days, updated_at, synced)
+            VALUES (?, ?, ?, ?, ?, datetime('now'), 0);
+            """;
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-
             ps.setString(1, e.getName());
             ps.setString(2, e.getLocation());
             ps.setString(3, e.getStatus());
@@ -37,14 +36,14 @@ public class EquipmentDAO {
 
     public void update(Equipment e) throws SQLException {
         String sql = """
-                UPDATE EQUIPMENT
-                SET name = ?, location = ?, status = ?,
-                    next_maintenance_date = ?, interval_days = ?
-                WHERE id = ?;
-                """;
+            UPDATE EQUIPMENT
+            SET name = ?, location = ?, status = ?,
+                next_maintenance_date = ?, interval_days = ?,
+                updated_at = datetime('now'), synced = 0
+            WHERE id = ?;
+            """;
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-
             ps.setString(1, e.getName());
             ps.setString(2, e.getLocation());
             ps.setString(3, e.getStatus());
@@ -67,7 +66,7 @@ public class EquipmentDAO {
     // ── UPDATE next_maintenance_date (caller-supplied connection) ─────────
 
     public void updateNextMaintenanceDate(int equipmentId, LocalDate date, Connection conn) throws SQLException {
-        String sql = "UPDATE EQUIPMENT SET next_maintenance_date = ? WHERE id = ?;";
+        String sql = "UPDATE EQUIPMENT SET next_maintenance_date = ?, updated_at = datetime('now'), synced = 0 WHERE id = ?;";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, date.toString());
             ps.setInt(2, equipmentId);
