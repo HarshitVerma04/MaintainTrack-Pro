@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.maintaintrack.controllers.LoginController"
+      alignment="CENTER"
+      spacing="0"
+      styleClass="login-root"
+      style="-fx-background-color: #1a1a2e;">
+
+    <VBox alignment="CENTER" spacing="24" maxWidth="380">
+        <padding><Insets top="48" right="40" bottom="48" left="40"/></padding>
+
+        <!-- Logo / Title -->
+        <VBox alignment="CENTER" spacing="6">
+            <Label text="MaintainTrack Pro"
+                   style="-fx-font-size:26px; -fx-font-weight:bold;
+                          -fx-text-fill:#e0e0e0;"/>
+            <Label text="Sign in to your account"
+                   style="-fx-font-size:13px; -fx-text-fill:#888;"/>
+        </VBox>
+
+        <!-- Card -->
+        <VBox spacing="16"
+              style="-fx-background-color:#252540; -fx-background-radius:12;
+                     -fx-padding:28;">
+
+            <!-- Username -->
+            <VBox spacing="6">
+                <Label text="Username"
+                       style="-fx-text-fill:#aaa; -fx-font-size:12px;"/>
+                <TextField fx:id="usernameField"
+                           promptText="Enter your username"
+                           style="-fx-background-color:#1a1a2e;
+                                  -fx-text-fill:#e0e0e0;
+                                  -fx-prompt-text-fill:#555;
+                                  -fx-background-radius:6;
+                                  -fx-padding:10 14;
+                                  -fx-border-color:#383860;
+                                  -fx-border-radius:6;"/>
+            </VBox>
+
+            <!-- Password -->
+            <VBox spacing="6">
+                <Label text="Password"
+                       style="-fx-text-fill:#aaa; -fx-font-size:12px;"/>
+                <PasswordField fx:id="passwordField"
+                               promptText="Enter your password"
+                               style="-fx-background-color:#1a1a2e;
+                                      -fx-text-fill:#e0e0e0;
+                                      -fx-prompt-text-fill:#555;
+                                      -fx-background-radius:6;
+                                      -fx-padding:10 14;
+                                      -fx-border-color:#383860;
+                                      -fx-border-radius:6;"/>
+            </VBox>
+
+            <!-- Error label -->
+            <Label fx:id="errorLabel"
+                   text=""
+                   wrapText="true"
+                   style="-fx-text-fill:#ff6b6b; -fx-font-size:12px;"/>
+
+            <!-- Login button -->
+            <Button fx:id="loginButton"
+                    text="Sign In"
+                    maxWidth="Infinity"
+                    onAction="#onLogin"
+                    style="-fx-background-color:#5865f2;
+                           -fx-text-fill:white;
+                           -fx-font-weight:bold;
+                           -fx-background-radius:6;
+                           -fx-padding:11 0;
+                           -fx-cursor:hand;"/>
+
+            <!-- Offline mode -->
+            <Button text="Continue Offline"
+                    maxWidth="Infinity"
+                    onAction="#onOffline"
+                    style="-fx-background-color:transparent;
+                           -fx-text-fill:#888;
+                           -fx-border-color:#383860;
+                           -fx-border-radius:6;
+                           -fx-padding:9 0;
+                           -fx-cursor:hand;"/>
+        </VBox>
+
+        <Label text="v2.0 — Cloud + Desktop Hybrid"
+               style="-fx-text-fill:#444; -fx-font-size:11px;"/>
+    </VBox>
+</VBox>

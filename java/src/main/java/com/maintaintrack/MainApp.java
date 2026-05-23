@@ -31,27 +31,26 @@ public class MainApp extends Application {
     public void start(Stage primaryStage) throws IOException {
         DatabaseInitializer.initialize();
 
+        // ── Show Login screen first ───────────────────────────────────────
         FXMLLoader loader = new FXMLLoader(
-                getClass().getResource("/fxml/MainLayout.fxml"));
-        Scene scene = new Scene(loader.load(), MIN_WIDTH, MIN_HEIGHT);
+                getClass().getResource("/fxml/Login.fxml"));
+        Scene scene = new Scene(loader.load(), 900, 600);
         scene.getStylesheets().add(
                 Objects.requireNonNull(
                         getClass().getResource("/styles/app.css")
                 ).toExternalForm());
 
-        primaryStage.setTitle(APP_TITLE);
-        primaryStage.setMinWidth(MIN_WIDTH);
-        primaryStage.setMinHeight(MIN_HEIGHT);
+        primaryStage.setTitle("MaintainTrack Pro — Sign In");
+        primaryStage.setMinWidth(600);
+        primaryStage.setMinHeight(400);
         primaryStage.setScene(scene);
 
-        // ── Fix: constrain to screen bounds ──────────────────────────────
         Screen screen = Screen.getPrimary();
         Rectangle2D bounds = screen.getVisualBounds();
         primaryStage.setX(bounds.getMinX());
         primaryStage.setY(bounds.getMinY());
-        primaryStage.setWidth(Math.min(MIN_WIDTH, bounds.getWidth()));
-        primaryStage.setHeight(Math.min(MIN_HEIGHT, bounds.getHeight()));
-        // ─────────────────────────────────────────────────────────────────
+        primaryStage.setWidth(Math.min(900, bounds.getWidth()));
+        primaryStage.setHeight(Math.min(600, bounds.getHeight()));
 
         primaryStage.show();
     }
