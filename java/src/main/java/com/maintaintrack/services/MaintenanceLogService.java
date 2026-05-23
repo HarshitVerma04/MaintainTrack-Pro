@@ -5,34 +5,20 @@ import com.maintaintrack.dao.EquipmentDAO;
 import com.maintaintrack.dao.MaintenanceLogDAO;
 import com.maintaintrack.models.Equipment;
 import com.maintaintrack.models.MaintenanceLog;
+import com.maintaintrack.sync.SyncService;
+import com.maintaintrack.sync.SyncTask;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * MaintenanceLogService — the most important service in Phase 2.
- *
- * Core logic: when a maintenance job is logged, the equipment's
- * next_maintenance_date must be recalculated automatically:
- *
- *   next_maintenance_date = done_on + interval_days
- *
- * Both writes (insert log + update equipment) happen together.
- * If either fails, neither is saved.
- */
 public class MaintenanceLogService {
 
     private final MaintenanceLogDAO logDAO       = new MaintenanceLogDAO();
     private final EquipmentDAO      equipmentDAO = new EquipmentDAO();
 
-    /**
-     * Logs a maintenance job AND recalculates the equipment's next due date.
-     * This is the key business rule for Phase 2.
-     */
     public void logMaintenance(MaintenanceLog log) throws SQLException {
-        // ── Validate ──────────────────────────────────────────────────────
         if (log.getEquipmentId() <= 0)
             throw new IllegalArgumentException("Please select an equipment.");
         if (log.getDoneOn() == null)
@@ -42,8 +28,6 @@ public class MaintenanceLogService {
         if (log.getDoneBy() == null || log.getDoneBy().isBlank())
             throw new IllegalArgumentException("'Done by' is required.");
 
-        // ── Transactional write: insert log + update next due date ────────
-        // Both writes share one Connection; if either fails, both roll back.
         Equipment equipment = equipmentDAO.findById(log.getEquipmentId());
         LocalDate nextDue   = equipment != null
                 ? log.getDoneOn().plusDays(equipment.getIntervalDays())
@@ -56,7 +40,8 @@ public class MaintenanceLogService {
 
             logDAO.insert(log, conn);
             if (nextDue != null) {
-                equipmentDAO.updateNextMaintenanceDate(log.getEquipmentId(), nextDue, conn);
+                equipmentDAO.updateNextMaintenanceDate(
+                        log.getEquipmentId(), nextDue, conn);
                 System.out.println("[Maintenance] Next due for '"
                         + equipment.getName() + "' → " + nextDue);
             }
@@ -69,6 +54,11 @@ public class MaintenanceLogService {
             conn.setAutoCommit(true);
             conn.close();
         }
+
+        // Push to cloud after successful local save
+        SyncService.getInstance().push(new SyncTask(
+                "MAINTENANCE_LOG", log.getId(),
+                toJson(log), SyncTask.Operation.INSERT));
     }
 
     public List<MaintenanceLog> getAllLogs() throws SQLException {
@@ -81,5 +71,22 @@ public class MaintenanceLogService {
 
     public void deleteLog(int id) throws SQLException {
         logDAO.delete(id);
+        SyncService.getInstance().push(new SyncTask(
+                "MAINTENANCE_LOG", id,
+                "{\"id\":" + id + "}", SyncTask.Operation.DELETE));
+    }
+
+    private String toJson(MaintenanceLog log) {
+        return String.format(
+                "{\"equipmentId\":%d,\"doneOn\":\"%s\",\"notes\":\"%s\",\"doneBy\":\"%s\"}",
+                log.getEquipmentId(),
+                log.getDoneOn() != null ? log.getDoneOn().toString() : "",
+                escape(log.getNotes()),
+                escape(log.getDoneBy())
+        );
+    }
+
+    private String escape(String s) {
+        return s == null ? "" : s.replace("\"", "\\\"");
     }
 }

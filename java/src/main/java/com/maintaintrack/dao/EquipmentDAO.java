@@ -21,7 +21,8 @@ public class EquipmentDAO {
             VALUES (?, ?, ?, ?, ?, datetime('now'), 0);
             """;
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql,
+                     Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, e.getName());
             ps.setString(2, e.getLocation());
             ps.setString(3, e.getStatus());
@@ -29,6 +30,9 @@ public class EquipmentDAO {
                     ? e.getNextMaintenanceDate().toString() : null);
             ps.setInt(5, e.getIntervalDays());
             ps.executeUpdate();
+
+            ResultSet keys = ps.getGeneratedKeys();
+            if (keys.next()) e.setId(keys.getInt(1));
         }
     }
 

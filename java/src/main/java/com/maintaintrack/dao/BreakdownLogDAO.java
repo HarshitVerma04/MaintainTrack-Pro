@@ -21,15 +21,19 @@ public class BreakdownLogDAO {
             VALUES (?, ?, ?, ?, datetime('now'), 0);
             """;
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql,
+                     Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, log.getEquipmentId());
             ps.setString(2, log.getOccurredOn().toString());
             ps.setString(3, log.getDescription());
             ps.setString(4, log.getResolvedBy());
             ps.executeUpdate();
+
+            // Capture generated ID back into the model
+            ResultSet keys = ps.getGeneratedKeys();
+            if (keys.next()) log.setId(keys.getInt(1));
         }
     }
-
     // ── FIND ALL (joined with EQUIPMENT name) ─────────────────────────────
 
     public List<BreakdownLog> findAll() throws SQLException {

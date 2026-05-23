@@ -2,24 +2,18 @@ package com.maintaintrack.services;
 
 import com.maintaintrack.dao.BreakdownLogDAO;
 import com.maintaintrack.models.BreakdownLog;
+import com.maintaintrack.sync.SyncService;
+import com.maintaintrack.sync.SyncTask;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * BreakdownLogService — business layer for breakdown logging.
- *
- * Simpler than MaintenanceLogService — no date recalculation needed.
- * Breakdowns are recorded as-is; the equipment status update is
- * handled separately via the Equipment screen.
- */
 public class BreakdownLogService {
 
     private final BreakdownLogDAO dao = new BreakdownLogDAO();
 
     public void logBreakdown(BreakdownLog log) throws SQLException {
-        // ── Validate ──────────────────────────────────────────────────────
         if (log.getEquipmentId() <= 0)
             throw new IllegalArgumentException("Please select an equipment.");
         if (log.getOccurredOn() == null)
@@ -30,6 +24,11 @@ public class BreakdownLogService {
             throw new IllegalArgumentException("Description is required.");
 
         dao.insert(log);
+
+        // Push to cloud after successful local save
+        SyncService.getInstance().push(new SyncTask(
+                "BREAKDOWN_LOG", log.getId(),
+                toJson(log), SyncTask.Operation.INSERT));
     }
 
     public List<BreakdownLog> getAllLogs() throws SQLException {
@@ -46,5 +45,22 @@ public class BreakdownLogService {
 
     public void deleteLog(int id) throws SQLException {
         dao.delete(id);
+        SyncService.getInstance().push(new SyncTask(
+                "BREAKDOWN_LOG", id,
+                "{\"id\":" + id + "}", SyncTask.Operation.DELETE));
+    }
+
+    private String toJson(BreakdownLog log) {
+        return String.format(
+                "{\"equipmentId\":%d,\"occurredOn\":\"%s\",\"description\":\"%s\",\"resolvedBy\":\"%s\"}",
+                log.getEquipmentId(),
+                log.getOccurredOn() != null ? log.getOccurredOn().toString() : "",
+                escape(log.getDescription()),
+                escape(log.getResolvedBy())
+        );
+    }
+
+    private String escape(String s) {
+        return s == null ? "" : s.replace("\"", "\\\"");
     }
 }
