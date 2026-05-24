@@ -4,6 +4,7 @@ import ProtectedRoute from "./components/ProtectedRoute"
 import MainLayout from "./components/MainLayout"
 import LoginPage from "./pages/LoginPage"
 import DashboardPage from "./pages/DashboardPage"
+import EquipmentPage from "./pages/EquipmentPage"
 
 function App() {
     return (
@@ -22,7 +23,7 @@ function App() {
                         }
                     >
                         <Route index element={<DashboardPage />} />
-                        <Route path="equipment"   element={<div className="text-gray-400">Equipment — Day 24</div>} />
+                        <Route path="equipment"   element={<EquipmentPage />} />
                         <Route path="parts"       element={<div className="text-gray-400">Parts — Day 25</div>} />
                         <Route path="suppliers"   element={<div className="text-gray-400">Suppliers — Day 25</div>} />
                         <Route path="maintenance" element={<div className="text-gray-400">Maintenance — Day 26</div>} />
