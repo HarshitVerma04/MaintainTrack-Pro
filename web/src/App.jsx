@@ -7,6 +7,8 @@ import DashboardPage from "./pages/DashboardPage"
 import EquipmentPage from "./pages/EquipmentPage"
 import PartsPage     from "./pages/PartsPage"
 import SuppliersPage from "./pages/SuppliersPage"
+import MaintenancePage from "./pages/MaintenancePage"
+import BreakdownsPage  from "./pages/BreakdownsPage"
 
 function App() {
     return (
@@ -28,8 +30,8 @@ function App() {
                         <Route path="equipment"   element={<EquipmentPage />} />
                         <Route path="parts"     element={<PartsPage />} />
                         <Route path="suppliers" element={<SuppliersPage />} />
-                        <Route path="maintenance" element={<div className="text-gray-400">Maintenance — Day 26</div>} />
-                        <Route path="breakdowns"  element={<div className="text-gray-400">Breakdowns — Day 26</div>} />
+                        <Route path="maintenance" element={<MaintenancePage />} />
+                        <Route path="breakdowns"  element={<BreakdownsPage />} />
                         <Route path="work-orders" element={<div className="text-gray-400">Work Orders — Day 27</div>} />
                         <Route path="users"       element={<div className="text-gray-400">Users — Day 29</div>} />
                         <Route path="*"           element={<Navigate to="/" replace />} />
