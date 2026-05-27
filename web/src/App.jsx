@@ -11,6 +11,7 @@ import MaintenancePage from "./pages/MaintenancePage"
 import BreakdownsPage  from "./pages/BreakdownsPage"
 import WorkOrdersPage from "./pages/WorkOrdersPage"
 import UsersPage from "./pages/UsersPage"
+import ErrorBoundary from "./components/ErrorBoundary"
 
 function App() {
     return (
@@ -28,15 +29,31 @@ function App() {
                             </ProtectedRoute>
                         }
                     >
-                        <Route index element={<DashboardPage />} />
-                        <Route path="equipment"   element={<EquipmentPage />} />
-                        <Route path="parts"     element={<PartsPage />} />
-                        <Route path="suppliers" element={<SuppliersPage />} />
-                        <Route path="maintenance" element={<MaintenancePage />} />
-                        <Route path="breakdowns"  element={<BreakdownsPage />} />
-                        <Route path="work-orders" element={<WorkOrdersPage />} />
-                        <Route path="users"       element={<UsersPage />} />
-                        <Route path="*"           element={<Navigate to="/" replace />} />
+                        <Route index element={
+                            <ErrorBoundary><DashboardPage /></ErrorBoundary>
+                        } />
+                        <Route path="equipment" element={
+                            <ErrorBoundary><EquipmentPage /></ErrorBoundary>
+                        } />
+                        <Route path="parts" element={
+                            <ErrorBoundary><PartsPage /></ErrorBoundary>
+                        } />
+                        <Route path="suppliers" element={
+                            <ErrorBoundary><SuppliersPage /></ErrorBoundary>
+                        } />
+                        <Route path="maintenance" element={
+                            <ErrorBoundary><MaintenancePage /></ErrorBoundary>
+                        } />
+                        <Route path="breakdowns" element={
+                            <ErrorBoundary><BreakdownsPage /></ErrorBoundary>
+                        } />
+                        <Route path="work-orders" element={
+                            <ErrorBoundary><WorkOrdersPage /></ErrorBoundary>
+                        } />
+                        <Route path="users" element={
+                            <ErrorBoundary><UsersPage /></ErrorBoundary>
+                        } />
+                        <Route path="*" element={<Navigate to="/" replace />} />
                     </Route>
 
                 </Routes>

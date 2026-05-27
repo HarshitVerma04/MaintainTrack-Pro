@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react"
 import API from "../api/axios"
 import { useAuth } from "../context/AuthContext"
+import toast from "react-hot-toast"
+import EmptyState from "../components/EmptyState"
+import SkeletonRow from "../components/SkeletonRow"
 
 const ROLES = ["ADMIN", "MANAGER", "TECHNICIAN"]
 
@@ -50,7 +53,10 @@ export default function UsersPage() {
         try {
             await API.put(`/api/users/${userId}/role`, { role: newRole })
             await fetchUsers()
-        } catch {}
+            toast.success("Role updated.")
+        } catch {
+            toast.error("Failed to update role.")
+        }
         finally { setChangingRole(null) }
     }
 
@@ -60,7 +66,11 @@ export default function UsersPage() {
             await API.delete(`/api/users/${deleteId}`)
             setDeleteId(null)
             await fetchUsers()
-        } catch { setDeleteId(null) }
+            toast.success("User removed.")
+        } catch {
+            setDeleteId(null)
+            toast.error("Something went wrong.")
+        }
     }
 
     const handleInvite = async () => {
@@ -73,8 +83,10 @@ export default function UsersPage() {
             await fetchUsers()
             setModal(false)
             setForm({ username: "", email: "", password: "", role: "TECHNICIAN" })
+            toast.success("User created.")
         } catch (err) {
             setFormError(err.response?.data?.error || "Failed to create user.")
+            toast.error("Something went wrong.")
         } finally { setSaving(false) }
     }
 
@@ -112,9 +124,22 @@ export default function UsersPage() {
 
             {/* Table */}
             {loading ? (
-                <div className="text-gray-500 text-sm py-12 text-center">Loading...</div>
+                <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+                    <table className="w-full">
+                        <tbody>
+                        {/* Note: Users table has 5 columns */}
+                        {Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} cols={5} />)}
+                        </tbody>
+                    </table>
+                </div>
             ) : filtered.length === 0 ? (
-                <div className="text-gray-500 text-sm py-12 text-center">No users found.</div>
+                <EmptyState
+                    icon="👥"
+                    title="No users found"
+                    message="Invite your team members to the platform."
+                    action="Invite User"
+                    onAction={() => { setModal(true); setFormError("") }}
+                />
             ) : (
                 <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
                     <table className="w-full text-sm">

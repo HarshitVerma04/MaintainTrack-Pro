@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react"
 import API from "../api/axios"
+import toast from "react-hot-toast"
+import EmptyState from "../components/EmptyState"
+import SkeletonRow from "../components/SkeletonRow"
 
 const EMPTY_FORM = { name: "", contactName: "", phone: "", email: "" }
 
@@ -63,6 +66,7 @@ export default function SuppliersPage() {
             }
             await fetchSuppliers()
             closeModal()
+            toast.success(editing ? "Supplier updated." : "Supplier added.")
         } catch (err) {
             setError(err.response?.data?.message || "Save failed.")
         } finally { setSaving(false) }
@@ -73,7 +77,11 @@ export default function SuppliersPage() {
             await API.delete(`/api/suppliers/${deleteId}`)
             setDeleteId(null)
             await fetchSuppliers()
-        } catch { setDeleteId(null) }
+            toast.success("Supplier deleted.")
+        } catch {
+            setDeleteId(null)
+            toast.error("Something went wrong.")
+        }
     }
 
     return (
@@ -98,9 +106,22 @@ export default function SuppliersPage() {
                    focus:outline-none focus:border-indigo-500"/>
 
             {loading ? (
-                <div className="text-gray-500 text-sm py-12 text-center">Loading...</div>
+                <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+                    <table className="w-full">
+                        <tbody>
+                        {/* Note: Suppliers table has 5 columns */}
+                        {Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} cols={5} />)}
+                        </tbody>
+                    </table>
+                </div>
             ) : filtered.length === 0 ? (
-                <div className="text-gray-500 text-sm py-12 text-center">No suppliers found.</div>
+                <EmptyState
+                    icon="🏢"
+                    title="No suppliers found"
+                    message="Add your first supplier to keep their contacts handy."
+                    action="Add Supplier"
+                    onAction={openAdd}
+                />
             ) : (
                 <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
                     <table className="w-full text-sm">

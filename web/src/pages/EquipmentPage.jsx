@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react"
 import API from "../api/axios"
+import toast from "react-hot-toast"
+import EmptyState from "../components/EmptyState"
+import SkeletonRow from "../components/SkeletonRow"
 
 const STATUS_COLORS = {
     "Operational":       "bg-green-900 text-green-300",
@@ -114,6 +117,7 @@ export default function EquipmentPage() {
             }
             await fetchEquipment()
             closeModal()
+            toast.success(editing ? "Equipment updated." : "Equipment added.")
         } catch (err) {
             setError(err.response?.data?.message || "Save failed.")
         } finally {
@@ -127,9 +131,11 @@ export default function EquipmentPage() {
             await API.delete(`/api/equipment/${deleteId}`)
             setDeleteId(null)
             await fetchEquipment()
+            toast.success("Equipment deleted.")
         } catch (err) {
             setError(err.response?.data?.message || "Delete failed.")
             setDeleteId(null)
+            toast.error("Something went wrong.")
         }
     }
 
@@ -173,11 +179,21 @@ export default function EquipmentPage() {
 
             {/* Table */}
             {loading ? (
-                <div className="text-gray-500 text-sm py-12 text-center">Loading...</div>
-            ) : filtered.length === 0 ? (
-                <div className="text-gray-500 text-sm py-12 text-center">
-                    No equipment found.
+                <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+                    <table className="w-full">
+                        <tbody>
+                        {Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} cols={6} />)}
+                        </tbody>
+                    </table>
                 </div>
+            ) : filtered.length === 0 ? (
+                <EmptyState
+                    icon="⚙️"
+                    title="No equipment found"
+                    message="Add your first piece of equipment to get started."
+                    action="Add Equipment"
+                    onAction={openAdd}
+                />
             ) : (
                 <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
                     <table className="w-full text-sm">

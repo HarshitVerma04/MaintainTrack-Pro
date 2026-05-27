@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react"
 import API from "../api/axios"
+import toast from "react-hot-toast"
+import EmptyState from "../components/EmptyState"
+import SkeletonRow from "../components/SkeletonRow"
 
 const EMPTY_FORM = {
     name: "", qtyOnHand: 0, minQty: 5,
@@ -97,6 +100,7 @@ export default function PartsPage() {
             }
             await fetchParts()
             closeModal()
+            toast.success(editing ? "Part updated." : "Part added.")
         } catch (err) {
             setError(err.response?.data?.message || "Save failed.")
         } finally { setSaving(false) }
@@ -106,8 +110,12 @@ export default function PartsPage() {
         try {
             await API.delete(`/api/parts/${deleteId}`)
             setDeleteId(null)
+            toast.success("Part deleted.")
             await fetchParts()
-        } catch { setDeleteId(null) }
+        } catch {
+            setDeleteId(null)
+            toast.error("Something went wrong.")
+        }
     }
 
     const lowCount = parts.filter(p => p.qtyOnHand <= p.minQty).length
@@ -153,9 +161,22 @@ export default function PartsPage() {
 
             {/* Table */}
             {loading ? (
-                <div className="text-gray-500 text-sm py-12 text-center">Loading...</div>
+                <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+                    <table className="w-full">
+                        <tbody>
+                        {/* Note: Parts table has 7 columns */}
+                        {Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} cols={7} />)}
+                        </tbody>
+                    </table>
+                </div>
             ) : filtered.length === 0 ? (
-                <div className="text-gray-500 text-sm py-12 text-center">No parts found.</div>
+                <EmptyState
+                    icon="🔩"
+                    title="No parts found"
+                    message="Add inventory parts to start tracking stock."
+                    action="Add Part"
+                    onAction={openAdd}
+                />
             ) : (
                 <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
                     <table className="w-full text-sm">

@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react"
 import API from "../api/axios"
+import toast from "react-hot-toast"
+import EmptyState from "../components/EmptyState"
+import SkeletonRow from "../components/SkeletonRow"
 
 const EMPTY_FORM = { equipmentId: "", doneOn: "", notes: "" }
 
@@ -59,8 +62,10 @@ export default function MaintenancePage() {
             await fetchLogs()
             setModal(false)
             setForm(EMPTY_FORM)
+            toast.success(editing ? "Maintenance updated." : "Maintenance log added successfully.")
         } catch (err) {
             setError(err.response?.data?.error || "Failed to save.")
+            toast.error("Something went wrong.")
         } finally { setSaving(false) }
     }
 
@@ -86,9 +91,22 @@ export default function MaintenancePage() {
                    focus:outline-none focus:border-indigo-500"/>
 
             {loading ? (
-                <div className="text-gray-500 text-sm py-12 text-center">Loading...</div>
+                <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+                    <table className="w-full">
+                        <tbody>
+                        {/* Note: Maintenance table has 4 columns */}
+                        {Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} cols={4} />)}
+                        </tbody>
+                    </table>
+                </div>
             ) : filtered.length === 0 ? (
-                <div className="text-gray-500 text-sm py-12 text-center">No logs found.</div>
+                <EmptyState
+                    icon="🔧"
+                    title="No maintenance logs found"
+                    message="Log your first maintenance activity here."
+                    action="Log Maintenance"
+                    onAction={openModal}
+                />
             ) : (
                 <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
                     <table className="w-full text-sm">

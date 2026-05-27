@@ -1,5 +1,9 @@
 import { useState, useEffect } from "react"
 import API from "../api/axios"
+import toast from "react-hot-toast"
+import EmptyState from "../components/EmptyState"
+import SkeletonRow from "../components/SkeletonRow"
+
 import {
     DndContext, DragOverlay, closestCenter,
     PointerSensor, useSensor, useSensors
@@ -183,8 +187,10 @@ export default function WorkOrdersPage() {
             }
             await fetchWorkOrders()
             closeModal()
+            toast.success(editing ? "Work order updated." : "Work order created.")
         } catch (err) {
             setError(err.response?.data?.error || "Save failed.")
+            toast.error("Something went wrong.")
         } finally { setSaving(false) }
     }
 
@@ -207,6 +213,7 @@ export default function WorkOrdersPage() {
         try {
             await API.put(`/api/work-orders/${wo.id}/status`, { status: newStatus })
         } catch {
+            toast.error("Failed to update status.")
             // Revert on failure
             setWorkOrders(prev => prev.map(w =>
                 w.id.toString() === active.id ? { ...w, status: wo.status } : w
@@ -244,7 +251,32 @@ export default function WorkOrdersPage() {
             </div>
 
             {loading ? (
-                <div className="text-gray-500 text-sm py-12 text-center">Loading...</div>
+                <div className="grid grid-cols-3 gap-4 flex-1">
+                    {["Open", "In Progress", "Resolved"].map(status => (
+                        <div key={status} className="bg-gray-900 rounded-xl border-t-2 border-gray-700 min-h-96">
+                            <div className="px-4 py-3 border-b border-gray-800">
+                                <div className="h-3 bg-gray-800 rounded w-20 animate-pulse"/>
+                            </div>
+                            <div className="p-3 space-y-2">
+                                {Array.from({ length: 3 }).map((_, i) => (
+                                    <div key={i} className="bg-gray-800 rounded-lg p-3 space-y-2 animate-pulse">
+                                        <div className="h-3 bg-gray-700 rounded w-3/4"/>
+                                        <div className="h-2 bg-gray-700 rounded w-1/2"/>
+                                        <div className="h-2 bg-gray-700 rounded w-1/3"/>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ) : workOrders.length === 0 ? (
+                <EmptyState
+                    icon="📋"
+                    title="No work orders found"
+                    message="Create your first work order to start tracking tasks."
+                    action="New Work Order"
+                    onAction={openAdd}
+                />
             ) : (
                 <DndContext
                     sensors={sensors}
@@ -265,8 +297,7 @@ export default function WorkOrdersPage() {
 
                     <DragOverlay>
                         {activeWo && (
-                            <div className="bg-gray-800 rounded-lg p-3 border border-indigo-500
-                              shadow-2xl w-64 space-y-2">
+                            <div className="bg-gray-800 rounded-lg p-3 border border-indigo-500 shadow-2xl w-64 space-y-2">
                                 <p className="text-sm font-medium text-white">{activeWo.title}</p>
                                 <p className="text-xs text-gray-500">{activeWo.equipment?.name}</p>
                             </div>

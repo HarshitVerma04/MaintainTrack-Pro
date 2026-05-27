@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react"
 import API from "../api/axios"
+import toast from "react-hot-toast"
+import EmptyState from "../components/EmptyState"
+import SkeletonRow from "../components/SkeletonRow"
 
 const EMPTY_FORM = { equipmentId: "", occurredOn: "", description: "" }
 
@@ -61,8 +64,10 @@ export default function BreakdownsPage() {
             await fetchLogs()
             setModal(false)
             setForm(EMPTY_FORM)
+            toast.success(editing ? "Breakdowns updated." : "Breakdown logged successfully.")
         } catch (err) {
             setError(err.response?.data?.error || "Failed to save.")
+            toast.error("Something went wrong.")
         } finally { setSaving(false) }
     }
 
@@ -71,8 +76,12 @@ export default function BreakdownsPage() {
         try {
             await API.put(`/api/breakdowns/${id}/resolve`, { resolvedBy: "web-user" })
             await fetchLogs()
+            toast.success("Breakdown resolved successfully.")
         } catch {}
-        finally { setResolving(null) }
+        finally {
+            setResolving(null)
+            toast.error("Something went wrong.")
+        }
     }
 
     const unresolvedCount = logs.filter(l => !l.resolvedBy).length
@@ -103,9 +112,22 @@ export default function BreakdownsPage() {
                    focus:outline-none focus:border-indigo-500"/>
 
             {loading ? (
-                <div className="text-gray-500 text-sm py-12 text-center">Loading...</div>
+                <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+                    <table className="w-full">
+                        <tbody>
+                        {/* Note: Breakdowns table has 5 columns */}
+                        {Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} cols={5} />)}
+                        </tbody>
+                    </table>
+                </div>
             ) : filtered.length === 0 ? (
-                <div className="text-gray-500 text-sm py-12 text-center">No breakdowns found.</div>
+                <EmptyState
+                    icon="⚠️"
+                    title="No breakdowns found"
+                    message="Great news! Log a breakdown if equipment fails."
+                    action="Log Breakdown"
+                    onAction={openModal}
+                />
             ) : (
                 <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
                     <table className="w-full text-sm">
