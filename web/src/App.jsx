@@ -10,6 +10,7 @@ import SuppliersPage from "./pages/SuppliersPage"
 import MaintenancePage from "./pages/MaintenancePage"
 import BreakdownsPage  from "./pages/BreakdownsPage"
 import WorkOrdersPage from "./pages/WorkOrdersPage"
+import UsersPage from "./pages/UsersPage"
 
 function App() {
     return (
@@ -34,7 +35,7 @@ function App() {
                         <Route path="maintenance" element={<MaintenancePage />} />
                         <Route path="breakdowns"  element={<BreakdownsPage />} />
                         <Route path="work-orders" element={<WorkOrdersPage />} />
-                        <Route path="users"       element={<div className="text-gray-400">Users — Day 29</div>} />
+                        <Route path="users"       element={<UsersPage />} />
                         <Route path="*"           element={<Navigate to="/" replace />} />
                     </Route>
 
