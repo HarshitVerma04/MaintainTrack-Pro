@@ -5,6 +5,8 @@ import MainLayout from "./components/MainLayout"
 import LoginPage from "./pages/LoginPage"
 import DashboardPage from "./pages/DashboardPage"
 import EquipmentPage from "./pages/EquipmentPage"
+import PartsPage     from "./pages/PartsPage"
+import SuppliersPage from "./pages/SuppliersPage"
 
 function App() {
     return (
@@ -24,8 +26,8 @@ function App() {
                     >
                         <Route index element={<DashboardPage />} />
                         <Route path="equipment"   element={<EquipmentPage />} />
-                        <Route path="parts"       element={<div className="text-gray-400">Parts — Day 25</div>} />
-                        <Route path="suppliers"   element={<div className="text-gray-400">Suppliers — Day 25</div>} />
+                        <Route path="parts"     element={<PartsPage />} />
+                        <Route path="suppliers" element={<SuppliersPage />} />
                         <Route path="maintenance" element={<div className="text-gray-400">Maintenance — Day 26</div>} />
                         <Route path="breakdowns"  element={<div className="text-gray-400">Breakdowns — Day 26</div>} />
                         <Route path="work-orders" element={<div className="text-gray-400">Work Orders — Day 27</div>} />

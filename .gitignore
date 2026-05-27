@@ -183,3 +183,7 @@ java/target/
 api/.env
 api/target/
 run.ps1
+
+web/.env
+web/node_modules/
+web/dist/

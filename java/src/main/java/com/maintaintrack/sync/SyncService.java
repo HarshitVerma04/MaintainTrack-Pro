@@ -164,6 +164,7 @@ public class SyncService {
             case "MAINTENANCE_LOG"-> base + "maintenance/log";
             case "BREAKDOWN_LOG"  -> base + "breakdowns";
             case "ISSUE_RECORD"   -> base + "parts/issue";
+            case "ISSUE_RECORD_RETURN"  -> base + "parts/return";
             default -> base + task.getTableName().toLowerCase();
         };
     }
