@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react"
 import API from "../api/axios"
 import toast from "react-hot-toast"
-import EmptyState from "../components/EmptyState"
-import SkeletonRow from "../components/SkeletonRow"
+import { useAuth } from "../context/AuthContext"
 
 const EMPTY_FORM = {
     name: "", qtyOnHand: 0, minQty: 5,
@@ -10,34 +9,37 @@ const EMPTY_FORM = {
 }
 
 function StockBadge({ qty, min }) {
-    if (qty <= 0)    return <span className="px-2 py-0.5 rounded-full text-xs bg-red-900 text-red-300">Out of Stock</span>
-    if (qty <= min)  return <span className="px-2 py-0.5 rounded-full text-xs bg-yellow-900 text-yellow-300">Low Stock</span>
+    if (qty <= 0)   return <span className="px-2 py-0.5 rounded-full text-xs bg-red-900 text-red-300">Out of Stock</span>
+    if (qty <= min) return <span className="px-2 py-0.5 rounded-full text-xs bg-yellow-900 text-yellow-300">Low Stock</span>
     return <span className="px-2 py-0.5 rounded-full text-xs bg-green-900 text-green-300">In Stock</span>
 }
 
 export default function PartsPage() {
-    const [parts,     setParts]     = useState([])
-    const [filtered,  setFiltered]  = useState([])
-    const [suppliers, setSuppliers] = useState([])
-    const [loading,   setLoading]   = useState(true)
-    const [search,    setSearch]    = useState("")
-    const [filter,    setFilter]    = useState("all")
-    const [modal,     setModal]     = useState(false)
-    const [editing,   setEditing]   = useState(null)
-    const [form,      setForm]      = useState(EMPTY_FORM)
-    const [saving,    setSaving]    = useState(false)
-    const [error,     setError]     = useState("")
-    const [deleteId,  setDeleteId]  = useState(null)
+    const { canDelete } = useAuth()
 
-    useEffect(() => {
-        fetchParts()
-        fetchSuppliers()
-    }, [])
+    const [parts,      setParts]      = useState([])
+    const [filtered,   setFiltered]   = useState([])
+    const [suppliers,  setSuppliers]  = useState([])
+    const [loading,    setLoading]    = useState(true)
+    const [search,     setSearch]     = useState("")
+    const [filter,     setFilter]     = useState("all")
+    const [modal,      setModal]      = useState(false)
+    const [editing,    setEditing]    = useState(null)
+    const [form,       setForm]       = useState(EMPTY_FORM)
+    const [saving,     setSaving]     = useState(false)
+    const [error,      setError]      = useState("")
+    const [deleteId,   setDeleteId]   = useState(null)
+
+    // Issue modal state
+    const [issueModal, setIssueModal] = useState(null)
+    const [issueQty,   setIssueQty]   = useState(1)
+
+    useEffect(() => { fetchParts(); fetchSuppliers() }, [])
 
     useEffect(() => {
         let result = parts
-        if (filter === "low")  result = result.filter(p => p.qtyOnHand <= p.minQty && p.qtyOnHand > 0)
-        if (filter === "out")  result = result.filter(p => p.qtyOnHand <= 0)
+        if (filter === "low") result = result.filter(p => p.qtyOnHand <= p.minQty && p.qtyOnHand > 0)
+        if (filter === "out") result = result.filter(p => p.qtyOnHand <= 0)
         const q = search.toLowerCase()
         if (q) result = result.filter(p =>
             p.name.toLowerCase().includes(q) ||
@@ -51,8 +53,9 @@ export default function PartsPage() {
         try {
             const res = await API.get("/api/parts")
             setParts(Array.isArray(res.data) ? res.data : [])
-        } catch { setError("Failed to load parts.") }
-        finally  { setLoading(false) }
+        } catch {
+            toast.error("Failed to load parts.")
+        } finally { setLoading(false) }
     }
 
     const fetchSuppliers = async () => {
@@ -63,10 +66,7 @@ export default function PartsPage() {
     }
 
     const openAdd = () => {
-        setEditing(null)
-        setForm(EMPTY_FORM)
-        setError("")
-        setModal(true)
+        setEditing(null); setForm(EMPTY_FORM); setError(""); setModal(true)
     }
 
     const openEdit = (p) => {
@@ -79,13 +79,11 @@ export default function PartsPage() {
             unitCost:   p.unitCost,
             supplierId: p.supplier?.id || ""
         })
-        setError("")
-        setModal(true)
+        setError(""); setModal(true)
     }
 
     const closeModal = () => {
-        setModal(false); setEditing(null)
-        setForm(EMPTY_FORM); setError("")
+        setModal(false); setEditing(null); setForm(EMPTY_FORM); setError("")
     }
 
     const handleSave = async () => {
@@ -110,11 +108,44 @@ export default function PartsPage() {
         try {
             await API.delete(`/api/parts/${deleteId}`)
             setDeleteId(null)
-            toast.success("Part deleted.")
             await fetchParts()
-        } catch {
+            toast.success("Part deleted.")
+        } catch (err) {
             setDeleteId(null)
-            toast.error("Something went wrong.")
+            if (err.response?.status === 403) {
+                toast.error("You don't have permission to delete parts.")
+            } else {
+                toast.error("Delete failed.")
+            }
+        }
+    }
+
+    // Issue part — decrements qtyOnHand
+    const openIssueModal = (p) => {
+        setIssueModal(p)
+        setIssueQty(1)
+    }
+
+    const handleIssue = async () => {
+        if (issueQty < 1 || issueQty > issueModal.qtyOnHand) {
+            toast.error("Invalid quantity.")
+            return
+        }
+        try {
+            const suppParam = issueModal.supplier?.id ? `?supplierId=${issueModal.supplier.id}` : ""
+            await API.put(`/api/parts/${issueModal.id}${suppParam}`, {
+                name:       issueModal.name,
+                qtyOnHand:  issueModal.qtyOnHand - issueQty,
+                minQty:     issueModal.minQty,
+                unit:       issueModal.unit,
+                unitCost:   issueModal.unitCost,
+                supplierId: issueModal.supplier?.id || ""
+            })
+            toast.success(`Issued ${issueQty} × ${issueModal.name}`)
+            setIssueModal(null)
+            await fetchParts()
+        } catch (err) {
+            toast.error("Failed to issue part.")
         }
     }
 
@@ -161,22 +192,9 @@ export default function PartsPage() {
 
             {/* Table */}
             {loading ? (
-                <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
-                    <table className="w-full">
-                        <tbody>
-                        {/* Note: Parts table has 7 columns */}
-                        {Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} cols={7} />)}
-                        </tbody>
-                    </table>
-                </div>
+                <div className="text-gray-500 text-sm py-12 text-center">Loading...</div>
             ) : filtered.length === 0 ? (
-                <EmptyState
-                    icon="🔩"
-                    title="No parts found"
-                    message="Add inventory parts to start tracking stock."
-                    action="Add Part"
-                    onAction={openAdd}
-                />
+                <div className="text-gray-500 text-sm py-12 text-center">No parts found.</div>
             ) : (
                 <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
                     <table className="w-full text-sm">
@@ -197,9 +215,7 @@ export default function PartsPage() {
                                 className={`hover:bg-gray-800/50 transition-colors
                     ${p.qtyOnHand <= p.minQty ? "bg-yellow-950/20" : ""}`}>
                                 <td className="px-5 py-3 font-medium text-white">{p.name}</td>
-                                <td className="px-5 py-3 text-gray-400">
-                                    {p.supplier?.name || "—"}
-                                </td>
+                                <td className="px-5 py-3 text-gray-400">{p.supplier?.name || "—"}</td>
                                 <td className="px-5 py-3">
                                     <div className="flex items-center gap-2">
                                         <span className="text-white font-medium">{p.qtyOnHand}</span>
@@ -218,11 +234,22 @@ export default function PartsPage() {
                                    px-2 py-1 rounded hover:bg-gray-700 transition-colors">
                                             Edit
                                         </button>
-                                        <button onClick={() => setDeleteId(p.id)}
-                                                className="text-red-400 hover:text-red-300 text-xs
-                                   px-2 py-1 rounded hover:bg-gray-700 transition-colors">
-                                            Delete
+                                        {/* Issue button — visible to everyone */}
+                                        <button onClick={() => openIssueModal(p)}
+                                                disabled={p.qtyOnHand <= 0}
+                                                className="text-yellow-400 hover:text-yellow-300 text-xs
+                                   px-2 py-1 rounded hover:bg-gray-700 transition-colors
+                                   disabled:opacity-40 disabled:cursor-not-allowed">
+                                            Issue
                                         </button>
+                                        {/* Delete — ADMIN and MANAGER only */}
+                                        {canDelete() && (
+                                            <button onClick={() => setDeleteId(p.id)}
+                                                    className="text-red-400 hover:text-red-300 text-xs
+                                     px-2 py-1 rounded hover:bg-gray-700 transition-colors">
+                                                Delete
+                                            </button>
+                                        )}
                                     </div>
                                 </td>
                             </tr>
@@ -232,7 +259,7 @@ export default function PartsPage() {
                 </div>
             )}
 
-            {/* Add/Edit Modal */}
+            {/* Add / Edit Modal */}
             {modal && (
                 <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
                     <div className="bg-gray-900 rounded-2xl border border-gray-700
@@ -307,6 +334,46 @@ export default function PartsPage() {
                                 {saving ? "Saving..." : editing ? "Save Changes" : "Add Part"}
                             </button>
                             <button onClick={closeModal}
+                                    className="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-300
+                           font-medium py-2 rounded-lg text-sm transition-colors">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Issue Modal */}
+            {issueModal && (
+                <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+                    <div className="bg-gray-900 rounded-2xl border border-gray-700 w-full max-w-sm p-6 space-y-4">
+                        <div>
+                            <h3 className="text-lg font-semibold text-white">Issue Part</h3>
+                            <p className="text-gray-400 text-sm mt-1">
+                                {issueModal.name} — <span className="text-white font-medium">{issueModal.qtyOnHand}</span> in stock
+                            </p>
+                        </div>
+
+                        <div>
+                            <label className="block text-xs text-gray-400 mb-1">Quantity to issue</label>
+                            <input
+                                type="number"
+                                min="1"
+                                max={issueModal.qtyOnHand}
+                                value={issueQty}
+                                onChange={e => setIssueQty(Number(e.target.value))}
+                                className="w-full bg-gray-800 border border-gray-700 text-white
+                           rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+                            />
+                        </div>
+
+                        <div className="flex gap-3 pt-1">
+                            <button onClick={handleIssue}
+                                    className="flex-1 bg-yellow-500 hover:bg-yellow-400 text-black
+                           font-semibold py-2 rounded-lg text-sm transition-colors">
+                                Confirm Issue
+                            </button>
+                            <button onClick={() => setIssueModal(null)}
                                     className="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-300
                            font-medium py-2 rounded-lg text-sm transition-colors">
                                 Cancel

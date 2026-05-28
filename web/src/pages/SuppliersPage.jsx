@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react"
 import API from "../api/axios"
 import toast from "react-hot-toast"
-import EmptyState from "../components/EmptyState"
-import SkeletonRow from "../components/SkeletonRow"
+import { useAuth } from "../context/AuthContext"
 
 const EMPTY_FORM = { name: "", contactName: "", phone: "", email: "" }
 
 export default function SuppliersPage() {
+    const { canDelete } = useAuth()
+
     const [suppliers, setSuppliers] = useState([])
     const [filtered,  setFiltered]  = useState([])
     const [loading,   setLoading]   = useState(true)
@@ -34,13 +35,13 @@ export default function SuppliersPage() {
         try {
             const res = await API.get("/api/suppliers")
             setSuppliers(Array.isArray(res.data) ? res.data : [])
-        } catch { setError("Failed to load suppliers.") }
-        finally  { setLoading(false) }
+        } catch {
+            toast.error("Failed to load suppliers.")
+        } finally { setLoading(false) }
     }
 
     const openAdd = () => {
-        setEditing(null); setForm(EMPTY_FORM)
-        setError(""); setModal(true)
+        setEditing(null); setForm(EMPTY_FORM); setError(""); setModal(true)
     }
 
     const openEdit = (s) => {
@@ -51,8 +52,7 @@ export default function SuppliersPage() {
     }
 
     const closeModal = () => {
-        setModal(false); setEditing(null)
-        setForm(EMPTY_FORM); setError("")
+        setModal(false); setEditing(null); setForm(EMPTY_FORM); setError("")
     }
 
     const handleSave = async () => {
@@ -78,9 +78,13 @@ export default function SuppliersPage() {
             setDeleteId(null)
             await fetchSuppliers()
             toast.success("Supplier deleted.")
-        } catch {
+        } catch (err) {
             setDeleteId(null)
-            toast.error("Something went wrong.")
+            if (err.response?.status === 403) {
+                toast.error("You don't have permission to delete suppliers.")
+            } else {
+                toast.error("Delete failed.")
+            }
         }
     }
 
@@ -106,22 +110,9 @@ export default function SuppliersPage() {
                    focus:outline-none focus:border-indigo-500"/>
 
             {loading ? (
-                <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
-                    <table className="w-full">
-                        <tbody>
-                        {/* Note: Suppliers table has 5 columns */}
-                        {Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} cols={5} />)}
-                        </tbody>
-                    </table>
-                </div>
+                <div className="text-gray-500 text-sm py-12 text-center">Loading...</div>
             ) : filtered.length === 0 ? (
-                <EmptyState
-                    icon="🏢"
-                    title="No suppliers found"
-                    message="Add your first supplier to keep their contacts handy."
-                    action="Add Supplier"
-                    onAction={openAdd}
-                />
+                <div className="text-gray-500 text-sm py-12 text-center">No suppliers found.</div>
             ) : (
                 <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
                     <table className="w-full text-sm">
@@ -148,11 +139,14 @@ export default function SuppliersPage() {
                                    px-2 py-1 rounded hover:bg-gray-700 transition-colors">
                                             Edit
                                         </button>
-                                        <button onClick={() => setDeleteId(s.id)}
-                                                className="text-red-400 hover:text-red-300 text-xs
-                                   px-2 py-1 rounded hover:bg-gray-700 transition-colors">
-                                            Delete
-                                        </button>
+                                        {/* Delete — ADMIN and MANAGER only */}
+                                        {canDelete() && (
+                                            <button onClick={() => setDeleteId(s.id)}
+                                                    className="text-red-400 hover:text-red-300 text-xs
+                                     px-2 py-1 rounded hover:bg-gray-700 transition-colors">
+                                                Delete
+                                            </button>
+                                        )}
                                     </div>
                                 </td>
                             </tr>
@@ -162,7 +156,7 @@ export default function SuppliersPage() {
                 </div>
             )}
 
-            {/* Add/Edit Modal */}
+            {/* Add / Edit Modal */}
             {modal && (
                 <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
                     <div className="bg-gray-900 rounded-2xl border border-gray-700

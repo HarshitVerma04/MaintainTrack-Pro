@@ -11,15 +11,17 @@ API.interceptors.request.use(config => {
     return config
 })
 
-// Redirect to login on 401/403
+// 401 = token expired/invalid → logout
+// 403 = forbidden → show message, DO NOT logout
 API.interceptors.response.use(
     response => response,
     error => {
-        if (error.response?.status === 401 || error.response?.status === 403) {
+        if (error.response?.status === 401) {
             localStorage.removeItem('token')
             localStorage.removeItem('user')
             window.location.href = '/login'
         }
+        // 403 is handled per-page — do nothing globally
         return Promise.reject(error)
     }
 )

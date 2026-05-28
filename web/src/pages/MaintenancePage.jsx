@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react"
 import API from "../api/axios"
 import toast from "react-hot-toast"
-import EmptyState from "../components/EmptyState"
-import SkeletonRow from "../components/SkeletonRow"
 
 const EMPTY_FORM = { equipmentId: "", doneOn: "", notes: "" }
 
@@ -33,8 +31,9 @@ export default function MaintenancePage() {
         try {
             const res = await API.get("/api/maintenance")
             setLogs(Array.isArray(res.data) ? res.data : [])
-        } catch { setError("Failed to load maintenance logs.") }
-        finally  { setLoading(false) }
+        } catch {
+            toast.error("Failed to load maintenance logs.")
+        } finally { setLoading(false) }
     }
 
     const fetchEquipment = async () => {
@@ -59,13 +58,14 @@ export default function MaintenancePage() {
                 doneOn:      form.doneOn,
                 notes:       form.notes,
             })
+            // fetchLogs first, THEN close modal and show toast
             await fetchLogs()
             setModal(false)
             setForm(EMPTY_FORM)
-            toast.success(editing ? "Maintenance updated." : "Maintenance log added successfully.")
+            toast.success("Maintenance log saved.")
         } catch (err) {
-            setError(err.response?.data?.error || "Failed to save.")
-            toast.error("Something went wrong.")
+            // Only set the inline error — do NOT show a toast here
+            setError(err.response?.data?.error || err.response?.data?.message || "Failed to save.")
         } finally { setSaving(false) }
     }
 
@@ -91,22 +91,9 @@ export default function MaintenancePage() {
                    focus:outline-none focus:border-indigo-500"/>
 
             {loading ? (
-                <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
-                    <table className="w-full">
-                        <tbody>
-                        {/* Note: Maintenance table has 4 columns */}
-                        {Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} cols={4} />)}
-                        </tbody>
-                    </table>
-                </div>
+                <div className="text-gray-500 text-sm py-12 text-center">Loading...</div>
             ) : filtered.length === 0 ? (
-                <EmptyState
-                    icon="🔧"
-                    title="No maintenance logs found"
-                    message="Log your first maintenance activity here."
-                    action="Log Maintenance"
-                    onAction={openModal}
-                />
+                <div className="text-gray-500 text-sm py-12 text-center">No logs found.</div>
             ) : (
                 <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
                     <table className="w-full text-sm">
@@ -155,8 +142,8 @@ export default function MaintenancePage() {
                                         className="w-full bg-gray-800 border border-gray-700 text-white
                              rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500">
                                     <option value="">— Select equipment —</option>
-                                    {equipment.map(e => (
-                                        <option key={e.id} value={e.id}>{e.name}</option>
+                                    {equipment.map(eq => (
+                                        <option key={eq.id} value={eq.id}>{eq.name}</option>
                                     ))}
                                 </select>
                             </div>
@@ -173,10 +160,11 @@ export default function MaintenancePage() {
                                 <label className="block text-xs text-gray-400 mb-1">Notes</label>
                                 <textarea value={form.notes}
                                           onChange={e => setForm({...form, notes: e.target.value})}
-                                          rows={3} placeholder="What was done?"
+                                          rows={3}
+                                          placeholder="Describe what was done..."
                                           className="w-full bg-gray-800 border border-gray-700 text-white
-                             rounded-lg px-3 py-2 text-sm focus:outline-none
-                             focus:border-indigo-500 resize-none"/>
+                             rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500
+                             resize-none"/>
                             </div>
                         </div>
 
@@ -186,9 +174,9 @@ export default function MaintenancePage() {
                             <button onClick={handleSave} disabled={saving}
                                     className="flex-1 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50
                            text-white font-medium py-2 rounded-lg text-sm transition-colors">
-                                {saving ? "Saving..." : "Log Maintenance"}
+                                {saving ? "Saving..." : "Save Log"}
                             </button>
-                            <button onClick={() => setModal(false)}
+                            <button onClick={() => { setModal(false); setForm(EMPTY_FORM); setError("") }}
                                     className="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-300
                            font-medium py-2 rounded-lg text-sm transition-colors">
                                 Cancel
