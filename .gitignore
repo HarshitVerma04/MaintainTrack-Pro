@@ -184,6 +184,8 @@ api/.env
 api/target/
 run.ps1
 
+.env
+api/.env
 web/.env
 web/node_modules/
 web/dist/
