@@ -54,7 +54,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
                 "http://localhost:5173",
-                "http://localhost:3000"
+                "http://localhost:3000",
                 "https://maintaintrack-pro.vercel.app",
                 "https://maintaintrack-pro-git-v2-dev.vercel.app"
         ));
