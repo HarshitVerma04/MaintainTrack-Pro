@@ -21,19 +21,38 @@ import java.util.List;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private final JwtAuthFilter jwtAuthFilter;
+    private final JwtAuthFilter    jwtAuthFilter;
+    private final RateLimitFilter  rateLimitFilter;
 
-    public SecurityConfig(JwtAuthFilter jwtAuthFilter) {
-        this.jwtAuthFilter = jwtAuthFilter;
+    public SecurityConfig(JwtAuthFilter jwtAuthFilter,
+                          RateLimitFilter rateLimitFilter) {
+        this.jwtAuthFilter   = jwtAuthFilter;
+        this.rateLimitFilter = rateLimitFilter;
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                // ── CORS ────────────────────────────────────────────────────────
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+                // ── CSRF disabled — stateless JWT API ───────────────────────────
                 .csrf(csrf -> csrf.disable())
+
+                // ── Security response headers ────────────────────────────────────
+                .headers(headers -> headers
+                        .frameOptions(frame -> frame.deny())           // Block clickjacking
+                        .contentTypeOptions(cto -> {})                 // No MIME sniffing
+                        .httpStrictTransportSecurity(hsts -> hsts      // HTTPS only
+                                .includeSubDomains(true)
+                                .maxAgeInSeconds(31536000))
+                )
+
+                // ── Stateless sessions ───────────────────────────────────────────
                 .sessionManagement(sm -> sm
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // ── Route permissions ────────────────────────────────────────────
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
@@ -43,8 +62,10 @@ public class SecurityConfig {
                                 "/api-docs").permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtAuthFilter,
-                        UsernamePasswordAuthenticationFilter.class);
+
+                // ── Filter chain: RateLimit → JWT → Spring Security ──────────────
+                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthFilter,   UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -58,7 +79,7 @@ public class SecurityConfig {
                 "https://maintaintrack-pro.vercel.app",
                 "https://maintaintrack-pro-git-v2-dev.vercel.app"
         ));
-        config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
 
