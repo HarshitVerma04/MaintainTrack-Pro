@@ -4,13 +4,15 @@ import com.maintaintrack.api.models.BreakdownLog;
 import com.maintaintrack.api.services.BreakdownLogService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.List;
 import java.util.Map;
 
+@Tag(name = "Breakdowns", description = "Breakdown incident logs. Logging a breakdown sets equipment status to Under Maintenance.")
 @RestController
 @RequestMapping("/api/breakdowns")
-@CrossOrigin(origins = "*")
 public class BreakdownLogController {
 
     private final BreakdownLogService service;
@@ -19,6 +21,7 @@ public class BreakdownLogController {
         this.service = service;
     }
 
+    @Operation(summary = "Get all breakdown logs")
     @GetMapping
     public List<BreakdownLog> getAll() {
         return service.getAll();
@@ -36,7 +39,10 @@ public class BreakdownLogController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping
+    @Operation(summary = "Log a breakdown",
+            description = "Body: { equipmentId, occurredOn, description }. " +
+                    "Equipment status is automatically set to Under Maintenance.")
+    @PostMapping("/log")
     public ResponseEntity<?> log(@RequestBody Map<String, Object> body) {
         try {
             Long   equipmentId  = Long.valueOf(body.get("equipmentId").toString());
@@ -51,6 +57,8 @@ public class BreakdownLogController {
         }
     }
 
+    @Operation(summary = "Resolve a breakdown",
+            description = "Marks the breakdown as resolved. Equipment status reverts to Operational.")
     @PutMapping("/{id}/resolve")
     public ResponseEntity<?> resolve(@PathVariable Long id,
                                      @RequestBody Map<String, Object> body) {
@@ -64,6 +72,7 @@ public class BreakdownLogController {
         }
     }
 
+    @Operation(summary = "Delete a breakdown log")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         return service.delete(id)

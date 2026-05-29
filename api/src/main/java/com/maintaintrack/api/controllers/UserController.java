@@ -5,13 +5,15 @@ import com.maintaintrack.api.services.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.List;
 import java.util.Map;
 
+@Tag(name = "Users", description = "User management. All endpoints require ADMIN role.")
 @RestController
 @RequestMapping("/api/users")
-@CrossOrigin(origins = "*")
 public class UserController {
 
     private final UserService service;
@@ -20,12 +22,15 @@ public class UserController {
         this.service = service;
     }
 
+    @Operation(summary = "Get all users", description = "Requires ADMIN role.")
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public List<AppUser> getAll() {
         return service.getAll();
     }
 
+    @Operation(summary = "Update user role",
+            description = "Role must be ADMIN, MANAGER or TECHNICIAN. Requires ADMIN role.")
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}/role")
     public ResponseEntity<?> updateRole(@PathVariable Long id,
@@ -36,6 +41,7 @@ public class UserController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @Operation(summary = "Delete a user", description = "Requires ADMIN role.")
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {

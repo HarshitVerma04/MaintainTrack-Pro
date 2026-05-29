@@ -6,12 +6,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.List;
 
+@Tag(name = "Parts", description = "Spare parts inventory. Stock issues tracked via qty_on_hand changes.")
 @RestController
 @RequestMapping("/api/parts")
-@CrossOrigin(origins = "*")
 public class PartController {
 
     private final PartService service;
@@ -20,6 +22,7 @@ public class PartController {
         this.service = service;
     }
 
+    @Operation(summary = "Get all parts")
     @GetMapping
     public List<Part> getAll() {
         return service.getAll();
@@ -32,11 +35,13 @@ public class PartController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @Operation(summary = "Get low-stock parts", description = "Returns parts where qty_on_hand <= min_qty.")
     @GetMapping("/low-stock")
     public List<Part> getLowStock() {
         return service.getLowStock();
     }
 
+    @Operation(summary = "Create a part", description = "Pass supplierId as a query param to link a supplier.")
     @PostMapping
     public ResponseEntity<Part> create(
             @Valid @RequestBody Part part,
@@ -44,6 +49,7 @@ public class PartController {
         return ResponseEntity.ok(service.create(part, supplierId));
     }
 
+    @Operation(summary = "Update a part")
     @PutMapping("/{id}")
     public ResponseEntity<Part> update(
             @PathVariable Long id,
@@ -54,6 +60,7 @@ public class PartController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @Operation(summary = "Delete a part", description = "Requires ADMIN or MANAGER role.")
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {

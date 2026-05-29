@@ -9,7 +9,6 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/sync")
-@CrossOrigin(origins = "*")
 public class SyncController {
 
     private final EquipmentRepository      equipRepo;

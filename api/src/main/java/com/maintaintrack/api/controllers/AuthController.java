@@ -4,14 +4,18 @@ import com.maintaintrack.api.config.JwtUtil;
 import com.maintaintrack.api.dto.AuthDto;
 import com.maintaintrack.api.models.AppUser;
 import com.maintaintrack.api.services.AuthService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+@Tag(name = "Authentication", description = "Login, register, token refresh and logout")
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = "*")
 public class AuthController {
 
     private final AuthService service;
@@ -22,6 +26,12 @@ public class AuthController {
         this.jwtUtil  = jwtUtil;
     }
 
+    @Operation(summary = "Register a new user",
+            description = "Creates a new account. Role must be ADMIN, MANAGER or TECHNICIAN.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "User registered successfully"),
+            @ApiResponse(responseCode = "400", description = "Username/email already exists")
+    })
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody AuthDto.RegisterRequest req) {
         try {
@@ -37,6 +47,12 @@ public class AuthController {
         }
     }
 
+    @Operation(summary = "Login",
+            description = "Returns a JWT token valid for 8 hours. Paste it in the Authorize button above.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Login successful — returns token"),
+            @ApiResponse(responseCode = "400", description = "Invalid credentials")
+    })
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthDto.LoginRequest req) {
         try {
@@ -48,6 +64,8 @@ public class AuthController {
         }
     }
 
+    @Operation(summary = "Get current user",
+            description = "Returns username and role of the logged-in user.")
     @GetMapping("/me")
     public ResponseEntity<?> me(
             org.springframework.security.core.Authentication auth) {
@@ -59,6 +77,8 @@ public class AuthController {
         ));
     }
 
+    @Operation(summary = "Refresh token",
+            description = "Issues a fresh JWT using the current valid token.")
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(
             org.springframework.security.core.Authentication auth) {
@@ -77,6 +97,8 @@ public class AuthController {
         ));
     }
 
+    @Operation(summary = "Logout",
+            description = "Stateless logout — client should discard the token.")
     @PostMapping("/logout")
     public ResponseEntity<?> logout() {
         return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
