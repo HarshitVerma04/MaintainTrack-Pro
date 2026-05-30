@@ -5,6 +5,7 @@ import com.maintaintrack.api.models.WorkOrder;
 import com.maintaintrack.api.repositories.EquipmentRepository;
 import com.maintaintrack.api.repositories.WorkOrderRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.CacheEvict;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,6 +27,7 @@ public class WorkOrderService {
 
     public List<WorkOrder> getByStatus(String status) { return repo.findByStatus(status); }
 
+    @CacheEvict(value = "dashboard", allEntries = true)
     public WorkOrder create(Long equipmentId, WorkOrder wo) {
         Equipment equipment = equipRepo.findById(equipmentId)
                 .orElseThrow(() -> new RuntimeException("Equipment not found: " + equipmentId));
@@ -36,6 +38,7 @@ public class WorkOrderService {
         return repo.save(wo);
     }
 
+    @CacheEvict(value = "dashboard", allEntries = true)
     public Optional<WorkOrder> updateStatus(Long id, String status) {
         return repo.findById(id).map(wo -> {
             wo.setStatus(status);

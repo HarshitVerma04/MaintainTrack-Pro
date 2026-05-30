@@ -6,6 +6,8 @@ import com.maintaintrack.api.repositories.BreakdownLogRepository;
 import com.maintaintrack.api.repositories.EquipmentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -35,6 +37,7 @@ public class BreakdownLogService {
         return logRepo.findById(id);
     }
 
+    @CacheEvict(value = "dashboard", allEntries = true)
     @Transactional
     public BreakdownLog log(Long equipmentId, String occurredOn,
                             String description, String resolvedBy) {
@@ -57,6 +60,7 @@ public class BreakdownLogService {
         return logRepo.save(entry);
     }
 
+    @CacheEvict(value = "dashboard", allEntries = true)
     @Transactional
     public Optional<BreakdownLog> resolve(Long id, String resolvedBy) {
         return logRepo.findById(id).map(entry -> {

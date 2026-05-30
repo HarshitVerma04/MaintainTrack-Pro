@@ -43,24 +43,28 @@ public class SyncController {
         LocalDateTime sinceTime = LocalDateTime.parse(since);
         Map<String, Object> changes = new LinkedHashMap<>();
 
+        // Equipment
         changes.put("equipment", equipRepo.findAll().stream()
-                .filter(e -> e.getUpdatedAt() != null
-                        && e.getUpdatedAt().isAfter(sinceTime))
+                .filter(e -> e.getUpdatedAt() == null
+                        || e.getUpdatedAt().isAfter(sinceTime))
                 .toList());
 
+// Parts
         changes.put("parts", partRepo.findAll().stream()
-                .filter(p -> p.getUpdatedAt() != null
-                        && p.getUpdatedAt().isAfter(sinceTime))
+                .filter(p -> p.getUpdatedAt() == null
+                        || p.getUpdatedAt().isAfter(sinceTime))
                 .toList());
 
+// Maintenance logs
         changes.put("maintenanceLogs", maintenanceRepo.findAll().stream()
-                .filter(m -> m.getUpdatedAt() != null
-                        && m.getUpdatedAt().isAfter(sinceTime))
+                .filter(m -> m.getUpdatedAt() == null
+                        || m.getUpdatedAt().isAfter(sinceTime))
                 .toList());
 
+// Breakdown logs
         changes.put("breakdownLogs", breakdownRepo.findAll().stream()
-                .filter(b -> b.getUpdatedAt() != null
-                        && b.getUpdatedAt().isAfter(sinceTime))
+                .filter(b -> b.getUpdatedAt() == null
+                        || b.getUpdatedAt().isAfter(sinceTime))
                 .toList());
 
         changes.put("timestamp", LocalDateTime.now().toString());

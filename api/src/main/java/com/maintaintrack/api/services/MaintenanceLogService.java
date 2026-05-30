@@ -7,6 +7,7 @@ import com.maintaintrack.api.repositories.MaintenanceLogRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.maintaintrack.api.config.SecurityUtils;
+import org.springframework.cache.annotation.CacheEvict;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -36,6 +37,7 @@ public class MaintenanceLogService {
         return logRepo.findById(id);
     }
 
+    @CacheEvict(value = "dashboard", allEntries = true)
     @Transactional
     public MaintenanceLog log(Long equipmentId, String doneOn, String notes) {
 

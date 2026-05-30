@@ -10,6 +10,8 @@ import javafx.scene.control.*;
 import javafx.stage.Stage;
 import java.util.Objects;
 import com.maintaintrack.auth.TokenRefreshService;
+import com.maintaintrack.sync.SyncPullService;
+import com.maintaintrack.sync.NetworkUtil;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -30,13 +32,15 @@ public class LoginController {
             return;
         }
 
-        // Disable UI while logging in
         loginButton.setDisable(true);
-        loginButton.setText("Signing in...");
-        errorLabel.setText("");
+        loginButton.setText("Connecting...");
+        errorLabel.setText("Waking up server — this may take 30s on first use...");
 
-        // Call API on background thread — never block JavaFX thread
         CompletableFuture.supplyAsync(() -> {
+            // Ping health endpoint first — this wakes Render if it's cold
+            // NetworkUtil.isOnline() already does this, so we just call it
+            NetworkUtil.isOnline();
+            // Now do the actual login — Render is warm
             try {
                 return ApiAuthService.login(username, password);
             } catch (Exception e) {
@@ -46,6 +50,11 @@ public class LoginController {
             AuthContext.getInstance().setSession(
                     result.token(), username, result.role());
             TokenRefreshService.getInstance().scheduleRefresh();
+            //pull cloud changes on every login
+            CompletableFuture.runAsync(() -> {
+                String pullResult = SyncPullService.pull();
+                System.out.println("[Login] " + pullResult);
+            });
             navigateToMain();
         }, Platform::runLater).exceptionally(ex -> {
             Platform.runLater(() -> {

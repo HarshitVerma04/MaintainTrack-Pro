@@ -156,7 +156,7 @@ public class SyncService {
     }
 
     private String buildUrl(SyncTask task) {
-        String base = "http://localhost:8080/api/";
+        String base = "https://maintaintrack-pro.onrender.com/api/";
         return switch (task.getTableName()) {
             case "EQUIPMENT"      -> base + "equipment";
             case "SUPPLIER"       -> base + "suppliers";

@@ -4,6 +4,7 @@ import com.maintaintrack.api.dto.DashboardKpiDto;
 import com.maintaintrack.api.models.BreakdownLog;
 import com.maintaintrack.api.models.MaintenanceLog;
 import com.maintaintrack.api.repositories.*;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -31,14 +32,13 @@ public class DashboardService {
         this.breakdownRepo   = breakdownRepo;
     }
 
+    @Cacheable("dashboard")
     public DashboardKpiDto getKpis() {
         DashboardKpiDto dto = new DashboardKpiDto();
         String today = LocalDate.now().toString();
 
-        // Total equipment
         dto.setTotalEquipment(equipRepo.count());
 
-        // Overdue = next_maintenance_date is before today and status is Operational
         long overdue = equipRepo.findAll().stream()
                 .filter(e -> e.getNextMaintenanceDate() != null
                         && !e.getNextMaintenanceDate().isEmpty()
@@ -47,18 +47,14 @@ public class DashboardService {
                 .count();
         dto.setOverdueCount(overdue);
 
-        // Under maintenance count
         long underMaintenance = equipRepo.findByStatus("Under Maintenance").size();
         dto.setUnderMaintenanceCount(underMaintenance);
 
-        // Low stock count
         dto.setLowStockCount(partRepo.findLowStock().size());
 
-        // Work order counts
         dto.setOpenWorkOrders(workOrderRepo.countByStatus("Open"));
         dto.setInProgressWorkOrders(workOrderRepo.countByStatus("In Progress"));
 
-        // Recent activity — last 10 maintenance + last 10 breakdowns merged and sorted
         List<Map<String, Object>> activity = new ArrayList<>();
 
         maintenanceRepo.findAll().stream()
@@ -89,7 +85,6 @@ public class DashboardService {
                     activity.add(entry);
                 });
 
-        // Sort combined activity by date descending, take top 20
         activity.sort((a, b) -> b.get("date").toString()
                 .compareTo(a.get("date").toString()));
 

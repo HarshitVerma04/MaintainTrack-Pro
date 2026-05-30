@@ -6,15 +6,13 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 
-/**
- * Checks if the Spring Boot API is reachable.
- * Used before every sync attempt.
- */
 public class NetworkUtil {
 
-    private static final String HEALTH_URL = "http://localhost:8080/actuator/health";
+    private static final String HEALTH_URL =
+            "https://maintaintrack-pro.onrender.com/actuator/health";
+
     private static final HttpClient CLIENT = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(2))
+            .connectTimeout(Duration.ofSeconds(5))
             .build();
 
     public static boolean isOnline() {
@@ -22,7 +20,7 @@ public class NetworkUtil {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(HEALTH_URL))
                     .GET()
-                    .timeout(Duration.ofSeconds(2))
+                    .timeout(Duration.ofSeconds(5))
                     .build();
             HttpResponse<String> response = CLIENT.send(
                     request, HttpResponse.BodyHandlers.ofString());
