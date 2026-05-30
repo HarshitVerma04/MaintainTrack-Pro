@@ -13,6 +13,9 @@ public class BreakdownLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "sync_id")
+    private String syncId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "equipment_id", nullable = false)
     private Equipment equipment;
@@ -50,4 +53,6 @@ public class BreakdownLog {
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public Boolean getSynced() { return synced; }
     public void setSynced(Boolean synced) { this.synced = synced; }
+    public String getSyncId()              { return syncId; }
+    public void setSyncId(String syncId)   { this.syncId = syncId; }
 }

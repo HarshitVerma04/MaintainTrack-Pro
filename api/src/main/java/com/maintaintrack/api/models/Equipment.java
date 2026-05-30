@@ -2,10 +2,7 @@ package com.maintaintrack.api.models;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.validation.constraints.NotBlank;
 
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
 @Table(name = "equipment")
 public class Equipment {
@@ -14,7 +11,9 @@ public class Equipment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Name is required")
+    @Column(name = "sync_id")
+    private String syncId;           // ← NEW
+
     @Column(nullable = false)
     private String name;
 
@@ -38,20 +37,21 @@ public class Equipment {
         updatedAt = LocalDateTime.now();
     }
 
-    // ── Getters & Setters ────────────────────────────────────
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public String getLocation() { return location; }
-    public void setLocation(String location) { this.location = location; }
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
-    public String getNextMaintenanceDate() { return nextMaintenanceDate; }
-    public void setNextMaintenanceDate(String nextMaintenanceDate) { this.nextMaintenanceDate = nextMaintenanceDate; }
-    public Integer getIntervalDays() { return intervalDays; }
-    public void setIntervalDays(Integer intervalDays) { this.intervalDays = intervalDays; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public Boolean getSynced() { return synced; }
-    public void setSynced(Boolean synced) { this.synced = synced; }
+    public Long getId()                                    { return id; }
+    public void setId(Long id)                             { this.id = id; }
+    public String getSyncId()                              { return syncId; }
+    public void setSyncId(String syncId)                   { this.syncId = syncId; }
+    public String getName()                                { return name; }
+    public void setName(String name)                       { this.name = name; }
+    public String getLocation()                            { return location; }
+    public void setLocation(String location)               { this.location = location; }
+    public String getStatus()                              { return status; }
+    public void setStatus(String status)                   { this.status = status; }
+    public String getNextMaintenanceDate()                 { return nextMaintenanceDate; }
+    public void setNextMaintenanceDate(String d)           { this.nextMaintenanceDate = d; }
+    public Integer getIntervalDays()                       { return intervalDays; }
+    public void setIntervalDays(Integer intervalDays)      { this.intervalDays = intervalDays; }
+    public LocalDateTime getUpdatedAt()                    { return updatedAt; }
+    public Boolean getSynced()                             { return synced; }
+    public void setSynced(Boolean synced)                  { this.synced = synced; }
 }

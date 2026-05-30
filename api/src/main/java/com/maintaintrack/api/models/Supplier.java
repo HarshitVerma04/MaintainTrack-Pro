@@ -2,10 +2,7 @@ package com.maintaintrack.api.models;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.validation.constraints.NotBlank;
 
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
 @Table(name = "supplier")
 public class Supplier {
@@ -14,7 +11,9 @@ public class Supplier {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Name is required")
+    @Column(name = "sync_id")
+    private String syncId;           // ← NEW
+
     @Column(nullable = false)
     private String name;
 
@@ -35,18 +34,19 @@ public class Supplier {
         updatedAt = LocalDateTime.now();
     }
 
-    // ── Getters & Setters ────────────────────────────────────
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public String getContactName() { return contactName; }
-    public void setContactName(String contactName) { this.contactName = contactName; }
-    public String getPhone() { return phone; }
-    public void setPhone(String phone) { this.phone = phone; }
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public Boolean getSynced() { return synced; }
-    public void setSynced(Boolean synced) { this.synced = synced; }
+    public Long getId()                                    { return id; }
+    public void setId(Long id)                             { this.id = id; }
+    public String getSyncId()                              { return syncId; }
+    public void setSyncId(String syncId)                   { this.syncId = syncId; }
+    public String getName()                                { return name; }
+    public void setName(String name)                       { this.name = name; }
+    public String getContactName()                         { return contactName; }
+    public void setContactName(String contactName)         { this.contactName = contactName; }
+    public String getPhone()                               { return phone; }
+    public void setPhone(String phone)                     { this.phone = phone; }
+    public String getEmail()                               { return email; }
+    public void setEmail(String email)                     { this.email = email; }
+    public LocalDateTime getUpdatedAt()                    { return updatedAt; }
+    public Boolean getSynced()                             { return synced; }
+    public void setSynced(Boolean synced)                  { this.synced = synced; }
 }

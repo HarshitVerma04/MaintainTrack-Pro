@@ -3,10 +3,7 @@ package com.maintaintrack.api.models;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.validation.constraints.NotBlank;
 
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
 @Table(name = "part")
 public class Part {
@@ -15,11 +12,13 @@ public class Part {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "sync_id")
+    private String syncId;           // ← NEW
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "supplier_id")
     private Supplier supplier;
 
-    @NotBlank(message = "Name is required")
     @Column(nullable = false)
     private String name;
 
@@ -45,22 +44,23 @@ public class Part {
         updatedAt = LocalDateTime.now();
     }
 
-    // ── Getters & Setters ────────────────────────────────────
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public Supplier getSupplier() { return supplier; }
-    public void setSupplier(Supplier supplier) { this.supplier = supplier; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public Integer getQtyOnHand() { return qtyOnHand; }
-    public void setQtyOnHand(Integer qtyOnHand) { this.qtyOnHand = qtyOnHand; }
-    public Integer getMinQty() { return minQty; }
-    public void setMinQty(Integer minQty) { this.minQty = minQty; }
-    public String getUnit() { return unit; }
-    public void setUnit(String unit) { this.unit = unit; }
-    public BigDecimal getUnitCost() { return unitCost; }
-    public void setUnitCost(BigDecimal unitCost) { this.unitCost = unitCost; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public Boolean getSynced() { return synced; }
-    public void setSynced(Boolean synced) { this.synced = synced; }
+    public Long getId()                                { return id; }
+    public void setId(Long id)                         { this.id = id; }
+    public String getSyncId()                          { return syncId; }
+    public void setSyncId(String syncId)               { this.syncId = syncId; }
+    public Supplier getSupplier()                      { return supplier; }
+    public void setSupplier(Supplier supplier)         { this.supplier = supplier; }
+    public String getName()                            { return name; }
+    public void setName(String name)                   { this.name = name; }
+    public Integer getQtyOnHand()                      { return qtyOnHand; }
+    public void setQtyOnHand(Integer qtyOnHand)        { this.qtyOnHand = qtyOnHand; }
+    public Integer getMinQty()                         { return minQty; }
+    public void setMinQty(Integer minQty)              { this.minQty = minQty; }
+    public String getUnit()                            { return unit; }
+    public void setUnit(String unit)                   { this.unit = unit; }
+    public BigDecimal getUnitCost()                    { return unitCost; }
+    public void setUnitCost(BigDecimal unitCost)       { this.unitCost = unitCost; }
+    public LocalDateTime getUpdatedAt()                { return updatedAt; }
+    public Boolean getSynced()                         { return synced; }
+    public void setSynced(Boolean synced)              { this.synced = synced; }
 }
