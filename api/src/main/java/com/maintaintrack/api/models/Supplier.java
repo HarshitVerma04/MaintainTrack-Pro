@@ -2,7 +2,9 @@ package com.maintaintrack.api.models;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
 @Table(name = "supplier")
 public class Supplier {
@@ -12,7 +14,7 @@ public class Supplier {
     private Long id;
 
     @Column(name = "sync_id")
-    private String syncId;           // ← NEW
+    private String syncId;
 
     @Column(nullable = false)
     private String name;
