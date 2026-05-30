@@ -16,8 +16,9 @@ public class MaintenanceLog {
     @Column(name = "sync_id")
     private String syncId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "equipment_id", nullable = false)
+    @ManyToOne(fetch = FetchType.EAGER)   // change LAZY to EAGER
+    @JoinColumn(name = "equipment_id")
+    @JsonIgnoreProperties({"maintenanceLogs", "breakdownLogs", "hibernateLazyInitializer"})
     private Equipment equipment;
 
     @Column(name = "done_on", nullable = false)
