@@ -1,6 +1,7 @@
 package com.maintaintrack.sync;
 
 import com.maintaintrack.auth.AuthContext;
+import com.maintaintrack.sync.SyncPullService;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -26,7 +27,7 @@ public class SyncService {
             .build();
 
     private final ScheduledExecutorService scheduler =
-            Executors.newSingleThreadScheduledExecutor(r -> {
+            Executors.newScheduledThreadPool(2, r -> {
                 Thread t = new Thread(r, "sync-worker");
                 t.setDaemon(true);
                 return t;
@@ -55,8 +56,13 @@ public class SyncService {
             System.err.println("[Sync] Failed to create queue table: " + e.getMessage());
         }
 
-        // Drain immediately on startup, then every 30 seconds
+        // Push drain — immediately on startup, then every 30 seconds
         scheduler.scheduleAtFixedRate(this::drainQueue, 0, 30, TimeUnit.SECONDS);
+
+        // Pull from cloud — first pull after 5 minutes, then every 5 minutes
+        // Delay of 5 minutes on first pull avoids hammering Render right after login pull
+        scheduler.scheduleAtFixedRate(this::pullFromCloud, 5, 5, TimeUnit.MINUTES);
+
         System.out.println("[Sync] SyncService started.");
     }
 
@@ -116,6 +122,27 @@ public class SyncService {
             updateStatus("Synced ✓");
         } catch (Exception e) {
             System.err.println("[Sync] Drain error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Pulls changes from the cloud API into local SQLite.
+     * Runs every 5 minutes in the background.
+     * Skips silently if offline or not logged in.
+     */
+    private void pullFromCloud() {
+        if (!AuthContext.getInstance().isLoggedIn()) return;
+        if (!NetworkUtil.isOnline()) return;
+
+        try {
+            String result = SyncPullService.pull();
+            System.out.println("[Sync] Background pull: " + result);
+            if (!result.contains("0 records")) {
+                // Something new came in — update the status label
+                updateStatus("Synced ✓");
+            }
+        } catch (Exception e) {
+            System.err.println("[Sync] Background pull error: " + e.getMessage());
         }
     }
 
