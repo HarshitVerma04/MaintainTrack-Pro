@@ -45,9 +45,6 @@ public class SupplierService {
         return dao.findById(id);
     }
 
-    public List<Supplier> search(String keyword) throws SQLException {
-        return dao.search(keyword);
-    }
 
     private String toJson(Supplier s) {
         return String.format(
