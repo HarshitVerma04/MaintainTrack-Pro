@@ -49,6 +49,12 @@ public class SyncController {
                         || e.getUpdatedAt().isAfter(sinceTime))
                 .toList());
 
+        // Suppliers
+        changes.put("suppliers", supplierRepo.findAll().stream()
+                .filter(s -> s.getUpdatedAt() == null
+                        || s.getUpdatedAt().isAfter(sinceTime))
+                .toList());
+
 // Parts
         changes.put("parts", partRepo.findAll().stream()
                 .filter(p -> p.getUpdatedAt() == null

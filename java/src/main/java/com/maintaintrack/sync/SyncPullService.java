@@ -68,6 +68,7 @@ public class SyncPullService {
             int total = 0;
 
             total += upsertEquipment(body.optJSONArray("equipment"));
+            total += upsertSuppliers(body.optJSONArray("suppliers"));
             total += upsertParts(body.optJSONArray("parts"));
             total += upsertMaintenanceLogs(body.optJSONArray("maintenanceLogs"));
             total += upsertBreakdownLogs(body.optJSONArray("breakdownLogs"));
@@ -137,6 +138,59 @@ public class SyncPullService {
                     ins.setString(5, r.optString("nextMaintenanceDate"));
                     ins.setInt(6, r.optInt("intervalDays", 30));
                     ins.setString(7, r.optString("updatedAt"));
+                    ins.executeUpdate();
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    private static int upsertSuppliers(JSONArray arr) throws SQLException {
+        if (arr == null) return 0;
+        int count = 0;
+        for (int i = 0; i < arr.length(); i++) {
+            JSONObject r = arr.getJSONObject(i);
+            String syncId = r.optString("syncId", null);
+            if (syncId == null) continue;
+
+            try (Connection conn = DBConnection.getConnection()) {
+                PreparedStatement check = conn.prepareStatement(
+                        "SELECT id, updated_at FROM SUPPLIER WHERE sync_id = ?");
+                check.setString(1, syncId);
+                ResultSet rs = check.executeQuery();
+
+                if (rs.next()) {
+                    String localUpdatedAt = rs.getString("updated_at");
+                    String cloudUpdatedAt = r.optString("updatedAt", "");
+                    if (isNewer(cloudUpdatedAt, localUpdatedAt)) {
+                        PreparedStatement upd = conn.prepareStatement("""
+                        UPDATE SUPPLIER SET
+                            name = ?, contact_name = ?, phone = ?,
+                            email = ?, updated_at = ?, synced = 1
+                        WHERE sync_id = ?
+                    """);
+                        upd.setString(1, r.optString("name"));
+                        upd.setString(2, r.optString("contactName"));
+                        upd.setString(3, r.optString("phone"));
+                        upd.setString(4, r.optString("email"));
+                        upd.setString(5, cloudUpdatedAt);
+                        upd.setString(6, syncId);
+                        upd.executeUpdate();
+                        count++;
+                    }
+                } else {
+                    PreparedStatement ins = conn.prepareStatement("""
+                    INSERT INTO SUPPLIER
+                        (sync_id, name, contact_name, phone, email, updated_at, synced)
+                    VALUES (?, ?, ?, ?, ?, ?, 1)
+                """);
+                    ins.setString(1, syncId);
+                    ins.setString(2, r.optString("name"));
+                    ins.setString(3, r.optString("contactName"));
+                    ins.setString(4, r.optString("phone"));
+                    ins.setString(5, r.optString("email"));
+                    ins.setString(6, r.optString("updatedAt"));
                     ins.executeUpdate();
                     count++;
                 }
