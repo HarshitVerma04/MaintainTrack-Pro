@@ -52,7 +52,8 @@ public class BreakdownLogService {
 
     private String toJson(BreakdownLog log) {
         return String.format(
-                "{\"equipmentId\":%d,\"occurredOn\":\"%s\",\"description\":\"%s\",\"resolvedBy\":\"%s\"}",
+                "{\"equipmentId\":%d,\"occurredOn\":\"%s\"," +
+                        "\"description\":\"%s\",\"resolvedBy\":\"%s\"}",
                 log.getEquipmentId(),
                 log.getOccurredOn() != null ? log.getOccurredOn().toString() : "",
                 escape(log.getDescription()),

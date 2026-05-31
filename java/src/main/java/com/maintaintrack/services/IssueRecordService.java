@@ -33,10 +33,8 @@ public class IssueRecordService {
         }
 
         // Push to cloud after successful local transaction
-        String endpoint = "issue".equals(record.getType())
-                ? "ISSUE_RECORD" : "ISSUE_RECORD_RETURN";
         SyncService.getInstance().push(new SyncTask(
-                endpoint, record.getId(),
+                "ISSUE_RECORD", record.getId(),
                 toJson(record), SyncTask.Operation.INSERT));
     }
 
@@ -80,10 +78,6 @@ public class IssueRecordService {
         );
     }
 
-    private String escape(String s) {
-        return s == null ? "" : s.replace("\"", "\\\"");
-    }
-
     private void validate(IssueRecord r) throws SQLException {
         if (r.getPartId() <= 0)
             throw new IllegalArgumentException("Please select a part.");
@@ -101,5 +95,9 @@ public class IssueRecordService {
                                 + " " + part.getUnit() + ", requested: " + r.getQty() + ".");
             }
         }
+    }
+
+    private String escape(String s) {
+        return s == null ? "" : s.replace("\"", "\\\"");
     }
 }

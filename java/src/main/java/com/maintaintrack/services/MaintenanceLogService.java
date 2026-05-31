@@ -37,7 +37,6 @@ public class MaintenanceLogService {
         try {
             conn.setAutoCommit(false);
             conn.createStatement().execute("PRAGMA foreign_keys = ON;");
-
             logDAO.insert(log, conn);
             if (nextDue != null) {
                 equipmentDAO.updateNextMaintenanceDate(
@@ -45,7 +44,6 @@ public class MaintenanceLogService {
                 System.out.println("[Maintenance] Next due for '"
                         + equipment.getName() + "' → " + nextDue);
             }
-
             conn.commit();
         } catch (SQLException e) {
             conn.rollback();
@@ -78,7 +76,8 @@ public class MaintenanceLogService {
 
     private String toJson(MaintenanceLog log) {
         return String.format(
-                "{\"equipmentId\":%d,\"doneOn\":\"%s\",\"notes\":\"%s\",\"doneBy\":\"%s\"}",
+                "{\"equipmentId\":%d,\"doneOn\":\"%s\"," +
+                        "\"notes\":\"%s\",\"doneBy\":\"%s\"}",
                 log.getEquipmentId(),
                 log.getDoneOn() != null ? log.getDoneOn().toString() : "",
                 escape(log.getNotes()),
