@@ -69,7 +69,7 @@ public class DashboardService {
                         rs.getString("name"),
                         rs.getString("location"),
                         rs.getString("status"),
-                        dateStr != null ? LocalDate.parse(dateStr) : null,
+                        (dateStr != null && !dateStr.isBlank()) ? LocalDate.parse(dateStr) : null,
                         rs.getInt("interval_days")
                 );
                 list.add(e);
