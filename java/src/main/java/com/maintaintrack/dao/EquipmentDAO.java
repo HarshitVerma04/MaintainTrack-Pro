@@ -147,7 +147,7 @@ public class EquipmentDAO {
         LocalDate date = (dateStr != null && !dateStr.isBlank())
                 ? LocalDate.parse(dateStr) : null;
 
-        return new Equipment(
+        Equipment eq = new Equipment(
                 rs.getInt("id"),
                 rs.getString("name"),
                 rs.getString("location"),
@@ -155,5 +155,17 @@ public class EquipmentDAO {
                 date,
                 rs.getInt("interval_days")
         );
+        eq.setSyncId(rs.getString("sync_id"));
+        return eq;
+    }
+
+    public void updateSyncId(int id, String syncId) throws SQLException {
+        String sql = "UPDATE EQUIPMENT SET sync_id = ? WHERE id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, syncId);
+            ps.setInt(2, id);
+            ps.executeUpdate();
+        }
     }
 }

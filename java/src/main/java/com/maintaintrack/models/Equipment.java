@@ -14,6 +14,7 @@ public class Equipment {
     private String    status;
     private LocalDate nextMaintenanceDate;
     private int       intervalDays;
+    private String syncId;
 
     // ── Constructors ──────────────────────────────────────────────────────
 
@@ -53,4 +54,7 @@ public class Equipment {
     public String toString() {
         return name + " (" + location + ")";
     }
+
+    public String getSyncId()              { return syncId; }
+    public void setSyncId(String syncId)   { this.syncId = syncId; }
 }
