@@ -150,8 +150,6 @@ public class SyncService {
         try {
             String token = AuthContext.getInstance().getToken();
             String url   = buildUrl(task);
-            String method = task.getOperation() == SyncTask.Operation.DELETE
-                    ? "DELETE" : "POST";
 
             HttpRequest.Builder builder = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -160,7 +158,8 @@ public class SyncService {
                     .timeout(Duration.ofSeconds(10));
 
             if (task.getOperation() == SyncTask.Operation.DELETE) {
-                builder.DELETE();
+                // Send syncId payload to /api/sync/delete via POST
+                builder.POST(HttpRequest.BodyPublishers.ofString(task.getPayload()));
             } else {
                 String body = task.getPayload();
                 String t    = task.getTableName();
@@ -197,6 +196,10 @@ public class SyncService {
             if (success) {
                 System.out.println("[Sync] ✓ " + task.getTableName()
                         + " #" + task.getLocalId());
+            } else {
+                System.err.println("[Sync] ✗ " + task.getTableName()
+                        + " HTTP " + response.statusCode()
+                        + " — " + response.body());
             }
             return success;
 
@@ -216,6 +219,11 @@ public class SyncService {
             case "BREAKDOWN_LOG"  -> base + "sync/push";
             case "ISSUE_RECORD"   -> base + "parts/issue";
             case "ISSUE_RECORD_RETURN"  -> base + "parts/return";
+            case "MAINTENANCE_LOG_DELETE",
+                 "BREAKDOWN_LOG_DELETE",
+                 "EQUIPMENT_DELETE",
+                 "PART_DELETE",
+                 "SUPPLIER_DELETE"    -> base + "sync/delete";
             default -> base + task.getTableName().toLowerCase();
         };
     }

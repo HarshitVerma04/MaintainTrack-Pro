@@ -68,10 +68,29 @@ public class MaintenanceLogService {
     }
 
     public void deleteLog(int id) throws SQLException {
+        // Get sync_id BEFORE deleting from SQLite
+        String syncId = getSyncIdForLog(id);
         logDAO.delete(id);
-        SyncService.getInstance().push(new SyncTask(
-                "MAINTENANCE_LOG", id,
-                "{\"id\":" + id + "}", SyncTask.Operation.DELETE));
+
+        if (syncId != null) {
+            SyncService.getInstance().push(new SyncTask(
+                    "MAINTENANCE_LOG_DELETE", id,
+                    "{\"table\":\"MAINTENANCE_LOG\",\"syncId\":\"" + syncId + "\"}",
+                    SyncTask.Operation.DELETE));
+        }
+    }
+
+    private String getSyncIdForLog(int id) {
+        String sql = "SELECT sync_id FROM MAINTENANCE_LOG WHERE id = ?";
+        try (java.sql.Connection conn = com.maintaintrack.dao.DBConnection.getConnection();
+             java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            java.sql.ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getString("sync_id");
+        } catch (Exception e) {
+            System.err.println("[Sync] getSyncIdForLog failed: " + e.getMessage());
+        }
+        return null;
     }
 
     private String toJson(MaintenanceLog log) {
