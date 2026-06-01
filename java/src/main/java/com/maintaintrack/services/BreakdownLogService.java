@@ -51,14 +51,49 @@ public class BreakdownLogService {
     }
 
     private String toJson(BreakdownLog log) {
+        String equipSyncId = getEquipmentSyncId(log.getEquipmentId());
+        String logSyncId   = getLogSyncId(log.getId());
+
         return String.format(
-                "{\"equipmentId\":%d,\"occurredOn\":\"%s\"," +
-                        "\"description\":\"%s\",\"resolvedBy\":\"%s\"}",
-                log.getEquipmentId(),
+                "{\"syncId\":\"%s\",\"equipmentSyncId\":\"%s\"," +
+                        "\"occurredOn\":\"%s\",\"description\":\"%s\"," +
+                        "\"resolvedBy\":\"%s\",\"updatedAt\":\"%s\"}",
+                logSyncId,
+                equipSyncId,
                 log.getOccurredOn() != null ? log.getOccurredOn().toString() : "",
                 escape(log.getDescription()),
-                escape(log.getResolvedBy())
+                escape(log.getResolvedBy()),
+                java.time.LocalDateTime.now().toString()
         );
+    }
+
+    private String getEquipmentSyncId(int equipmentId) {
+        String sql = "SELECT sync_id FROM EQUIPMENT WHERE id = ?";
+        try (java.sql.Connection conn = com.maintaintrack.dao.DBConnection.getConnection();
+             java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, equipmentId);
+            java.sql.ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getString("sync_id");
+        } catch (Exception e) {
+            System.err.println("[Sync] Could not resolve equipment sync_id: " + e.getMessage());
+        }
+        return "";
+    }
+
+    private String getLogSyncId(int logId) {
+        String sql = "SELECT sync_id FROM BREAKDOWN_LOG WHERE id = ?";
+        try (java.sql.Connection conn = com.maintaintrack.dao.DBConnection.getConnection();
+             java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, logId);
+            java.sql.ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                String s = rs.getString("sync_id");
+                return s != null ? s : java.util.UUID.randomUUID().toString();
+            }
+        } catch (Exception e) {
+            System.err.println("[Sync] Could not resolve log sync_id: " + e.getMessage());
+        }
+        return java.util.UUID.randomUUID().toString();
     }
 
     private String escape(String s) {

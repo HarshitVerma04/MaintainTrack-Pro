@@ -75,14 +75,51 @@ public class MaintenanceLogService {
     }
 
     private String toJson(MaintenanceLog log) {
+        // Look up the equipment's sync_id so the cloud can resolve
+        // the relationship regardless of ID differences
+        String equipSyncId = getEquipmentSyncId(log.getEquipmentId());
+        String logSyncId   = getLogSyncId(log.getId());
+
         return String.format(
-                "{\"equipmentId\":%d,\"doneOn\":\"%s\"," +
-                        "\"notes\":\"%s\",\"doneBy\":\"%s\"}",
-                log.getEquipmentId(),
+                "{\"syncId\":\"%s\",\"equipmentSyncId\":\"%s\"," +
+                        "\"doneOn\":\"%s\",\"notes\":\"%s\",\"doneBy\":\"%s\"," +
+                        "\"updatedAt\":\"%s\"}",
+                logSyncId,
+                equipSyncId,
                 log.getDoneOn() != null ? log.getDoneOn().toString() : "",
                 escape(log.getNotes()),
-                escape(log.getDoneBy())
+                escape(log.getDoneBy()),
+                java.time.LocalDateTime.now().toString()
         );
+    }
+
+    private String getEquipmentSyncId(int equipmentId) {
+        String sql = "SELECT sync_id FROM EQUIPMENT WHERE id = ?";
+        try (java.sql.Connection conn = com.maintaintrack.dao.DBConnection.getConnection();
+             java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, equipmentId);
+            java.sql.ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getString("sync_id");
+        } catch (Exception e) {
+            System.err.println("[Sync] Could not resolve equipment sync_id: " + e.getMessage());
+        }
+        return "";
+    }
+
+    private String getLogSyncId(int logId) {
+        String sql = "SELECT sync_id FROM MAINTENANCE_LOG WHERE id = ?";
+        try (java.sql.Connection conn = com.maintaintrack.dao.DBConnection.getConnection();
+             java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, logId);
+            java.sql.ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                String s = rs.getString("sync_id");
+                return s != null ? s : java.util.UUID.randomUUID().toString();
+            }
+        } catch (Exception e) {
+            System.err.println("[Sync] Could not resolve log sync_id: " + e.getMessage());
+        }
+        return java.util.UUID.randomUUID().toString();
     }
 
     private String escape(String s) {

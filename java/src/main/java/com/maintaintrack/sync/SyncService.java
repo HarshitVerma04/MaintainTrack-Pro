@@ -162,7 +162,19 @@ public class SyncService {
             if (task.getOperation() == SyncTask.Operation.DELETE) {
                 builder.DELETE();
             } else {
-                builder.POST(HttpRequest.BodyPublishers.ofString(task.getPayload()));
+                // MAINTENANCE_LOG and BREAKDOWN_LOG go through /api/sync/push
+                // which expects a wrapped batch payload
+                String body = task.getPayload();
+                if ("MAINTENANCE_LOG".equals(task.getTableName())) {
+                    body = "{\"equipment\":[],\"suppliers\":[],\"parts\":[]," +
+                            "\"maintenanceLogs\":[" + task.getPayload() + "]," +
+                            "\"breakdownLogs\":[]}";
+                } else if ("BREAKDOWN_LOG".equals(task.getTableName())) {
+                    body = "{\"equipment\":[],\"suppliers\":[],\"parts\":[]," +
+                            "\"maintenanceLogs\":[]," +
+                            "\"breakdownLogs\":[" + task.getPayload() + "]}";
+                }
+                builder.POST(HttpRequest.BodyPublishers.ofString(body));
             }
 
             HttpResponse<String> response = client.send(
@@ -188,8 +200,8 @@ public class SyncService {
             case "EQUIPMENT"      -> base + "equipment";
             case "SUPPLIER"       -> base + "suppliers";
             case "PART"           -> base + "parts";
-            case "MAINTENANCE_LOG"-> base + "maintenance/log";
-            case "BREAKDOWN_LOG"  -> base + "breakdowns";
+            case "MAINTENANCE_LOG"-> base + "sync/push";
+            case "BREAKDOWN_LOG"  -> base + "sync/push";
             case "ISSUE_RECORD"   -> base + "parts/issue";
             case "ISSUE_RECORD_RETURN"  -> base + "parts/return";
             default -> base + task.getTableName().toLowerCase();
