@@ -162,17 +162,29 @@ public class SyncService {
             if (task.getOperation() == SyncTask.Operation.DELETE) {
                 builder.DELETE();
             } else {
-                // MAINTENANCE_LOG and BREAKDOWN_LOG go through /api/sync/push
-                // which expects a wrapped batch payload
                 String body = task.getPayload();
-                if ("MAINTENANCE_LOG".equals(task.getTableName())) {
+                String t    = task.getTableName();
+
+                if ("EQUIPMENT".equals(t)) {
+                    body = "{\"equipment\":[" + body + "]," +
+                            "\"suppliers\":[],\"parts\":[]," +
+                            "\"maintenanceLogs\":[],\"breakdownLogs\":[]}";
+                } else if ("SUPPLIER".equals(t)) {
+                    body = "{\"equipment\":[]," +
+                            "\"suppliers\":[" + body + "],\"parts\":[]," +
+                            "\"maintenanceLogs\":[],\"breakdownLogs\":[]}";
+                } else if ("PART".equals(t)) {
+                    body = "{\"equipment\":[],\"suppliers\":[]," +
+                            "\"parts\":[" + body + "]," +
+                            "\"maintenanceLogs\":[],\"breakdownLogs\":[]}";
+                } else if ("MAINTENANCE_LOG".equals(t)) {
                     body = "{\"equipment\":[],\"suppliers\":[],\"parts\":[]," +
-                            "\"maintenanceLogs\":[" + task.getPayload() + "]," +
+                            "\"maintenanceLogs\":[" + body + "]," +
                             "\"breakdownLogs\":[]}";
-                } else if ("BREAKDOWN_LOG".equals(task.getTableName())) {
+                } else if ("BREAKDOWN_LOG".equals(t)) {
                     body = "{\"equipment\":[],\"suppliers\":[],\"parts\":[]," +
                             "\"maintenanceLogs\":[]," +
-                            "\"breakdownLogs\":[" + task.getPayload() + "]}";
+                            "\"breakdownLogs\":[" + body + "]}";
                 }
                 builder.POST(HttpRequest.BodyPublishers.ofString(body));
             }
@@ -197,9 +209,9 @@ public class SyncService {
     private String buildUrl(SyncTask task) {
         String base = "https://maintaintrack-pro.onrender.com/api/";
         return switch (task.getTableName()) {
-            case "EQUIPMENT"      -> base + "equipment";
-            case "SUPPLIER"       -> base + "suppliers";
-            case "PART"           -> base + "parts";
+            case "EQUIPMENT"      -> base + "sync/push";
+            case "SUPPLIER"       -> base + "sync/push";
+            case "PART"           -> base + "sync/push";
             case "MAINTENANCE_LOG"-> base + "sync/push";
             case "BREAKDOWN_LOG"  -> base + "sync/push";
             case "ISSUE_RECORD"   -> base + "parts/issue";

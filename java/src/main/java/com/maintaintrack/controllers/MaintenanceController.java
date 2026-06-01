@@ -14,13 +14,6 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * MaintenanceController — handles the Maintenance Log screen.
- *
- * Key behaviour: when the user picks an equipment AND a done-on date,
- * the "Next due will be" preview updates live so they can see the
- * recalculated date before saving.
- */
 public class MaintenanceController {
 
     // ── Table ─────────────────────────────────────────────────────────────
@@ -43,7 +36,8 @@ public class MaintenanceController {
     // ── State ─────────────────────────────────────────────────────────────
     private final MaintenanceLogService service      = new MaintenanceLogService();
     private final EquipmentDAO          equipmentDAO = new EquipmentDAO();
-    private final ObservableList<MaintenanceLog> tableData = FXCollections.observableArrayList();
+    private final ObservableList<MaintenanceLog> tableData =
+            FXCollections.observableArrayList();
 
     // ── Init ──────────────────────────────────────────────────────────────
 
@@ -61,6 +55,31 @@ public class MaintenanceController {
         colDoneOn.setCellValueFactory(new PropertyValueFactory<>("doneOn"));
         colDoneBy.setCellValueFactory(new PropertyValueFactory<>("doneBy"));
         colNotes.setCellValueFactory(new PropertyValueFactory<>("notes"));
+
+        // ── Delete button column ──────────────────────────────────────────
+        TableColumn<MaintenanceLog, Void> colDelete = new TableColumn<>("");
+        colDelete.setPrefWidth(60);
+        colDelete.setStyle("-fx-alignment: CENTER;");
+        colDelete.setCellFactory(col -> new TableCell<>() {
+            private final Button btn = new Button("✕");
+            {
+                btn.setStyle(
+                        "-fx-background-color: #c0392b; -fx-text-fill: white; " +
+                                "-fx-font-size: 11px; -fx-padding: 2 8 2 8; " +
+                                "-fx-background-radius: 4; -fx-cursor: hand;");
+                btn.setOnAction(e -> {
+                    MaintenanceLog log = getTableView().getItems().get(getIndex());
+                    confirmAndDelete(log);
+                });
+            }
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                setGraphic(empty ? null : btn);
+            }
+        });
+
+        logTable.getColumns().add(colDelete);
         logTable.setItems(tableData);
     }
 
@@ -73,19 +92,14 @@ public class MaintenanceController {
         }
     }
 
-    /**
-     * Live preview — updates "Next due will be" whenever equipment
-     * or date changes. Lets the user see the recalculated date before saving.
-     */
     private void setupPreviewListeners() {
         fieldEquipment.valueProperty().addListener((obs, old, newVal) -> updatePreview());
         fieldDoneOn.valueProperty().addListener((obs, old, newVal) -> updatePreview());
     }
 
     private void updatePreview() {
-        Equipment e  = fieldEquipment.getValue();
+        Equipment e    = fieldEquipment.getValue();
         LocalDate done = fieldDoneOn.getValue();
-
         if (e != null && done != null) {
             LocalDate nextDue = done.plusDays(e.getIntervalDays());
             nextDuePreview.setText(nextDue.toString()
@@ -110,7 +124,7 @@ public class MaintenanceController {
     @FXML
     private void onAdd() {
         clearForm();
-        fieldDoneOn.setValue(LocalDate.now()); // default to today
+        fieldDoneOn.setValue(LocalDate.now());
         showForm(true);
     }
 
@@ -138,6 +152,28 @@ public class MaintenanceController {
     private void onCancel() {
         showForm(false);
         clearForm();
+    }
+
+    // ── Delete ────────────────────────────────────────────────────────────
+
+    private void confirmAndDelete(MaintenanceLog log) {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Delete Maintenance Log");
+        confirm.setHeaderText("Delete this log?");
+        confirm.setContentText(
+                log.getEquipmentName() + " — " + log.getDoneOn() +
+                        (log.getNotes() != null && !log.getNotes().isBlank()
+                                ? "\n" + log.getNotes() : ""));
+        confirm.showAndWait().ifPresent(result -> {
+            if (result == ButtonType.OK) {
+                try {
+                    service.deleteLog(log.getId());
+                    loadTable();
+                } catch (Exception e) {
+                    showError("Delete failed: " + e.getMessage());
+                }
+            }
+        });
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────

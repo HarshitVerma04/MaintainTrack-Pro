@@ -52,16 +52,37 @@ public class PartService {
     }
 
     private String toJson(Part p) {
+        String syncId = getSyncId(p.getId());
         return String.format(
-                "{\"name\":\"%s\",\"qtyOnHand\":%d,\"minQty\":%d," +
-                        "\"unit\":\"%s\",\"unitCost\":%.2f,\"supplierId\":%d}",
+                "{\"syncId\":\"%s\",\"name\":\"%s\",\"qtyOnHand\":%d," +
+                        "\"minQty\":%d,\"unit\":\"%s\",\"unitCost\":%.2f," +
+                        "\"supplierId\":%d,\"updatedAt\":\"%s\"}",
+                syncId,
                 escape(p.getName()),
                 p.getQtyOnHand(),
                 p.getMinQty(),
                 escape(p.getUnit()),
                 p.getUnitCost(),
-                p.getSupplierId()
+                p.getSupplierId(),
+                java.time.LocalDateTime.now().toString()
         );
+    }
+
+    private String getSyncId(int id) {
+        String sql = "SELECT sync_id FROM PART WHERE id = ?";
+        try (java.sql.Connection conn =
+                     com.maintaintrack.dao.DBConnection.getConnection();
+             java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            java.sql.ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                String s = rs.getString("sync_id");
+                return s != null ? s : java.util.UUID.randomUUID().toString();
+            }
+        } catch (Exception e) {
+            System.err.println("[Sync] Part getSyncId failed: " + e.getMessage());
+        }
+        return java.util.UUID.randomUUID().toString();
     }
 
     private String escape(String s) {

@@ -47,14 +47,34 @@ public class SupplierService {
 
 
     private String toJson(Supplier s) {
+        String syncId = getSyncId(s.getId());
         return String.format(
-                "{\"name\":\"%s\",\"contactName\":\"%s\"," +
-                        "\"phone\":\"%s\",\"email\":\"%s\"}",
+                "{\"syncId\":\"%s\",\"name\":\"%s\",\"contactName\":\"%s\"," +
+                        "\"phone\":\"%s\",\"email\":\"%s\",\"updatedAt\":\"%s\"}",
+                syncId,
                 escape(s.getName()),
                 escape(s.getContactName()),
                 escape(s.getPhone()),
-                escape(s.getEmail())
+                escape(s.getEmail()),
+                java.time.LocalDateTime.now().toString()
         );
+    }
+
+    private String getSyncId(int id) {
+        String sql = "SELECT sync_id FROM SUPPLIER WHERE id = ?";
+        try (java.sql.Connection conn =
+                     com.maintaintrack.dao.DBConnection.getConnection();
+             java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            java.sql.ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                String s = rs.getString("sync_id");
+                return s != null ? s : java.util.UUID.randomUUID().toString();
+            }
+        } catch (Exception e) {
+            System.err.println("[Sync] Supplier getSyncId failed: " + e.getMessage());
+        }
+        return java.util.UUID.randomUUID().toString();
     }
 
     private String escape(String s) {
