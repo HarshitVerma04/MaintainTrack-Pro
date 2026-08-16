@@ -565,9 +565,9 @@ Login (JWT auth)
 
 ---
 
-## 📄 Licence
+## 📄 License
 
-MIT Licence — see [LICENCE](LICENCE) for details.
+MIT License — see [LICENSE](LICENSE) for details.
 
 ---
 
