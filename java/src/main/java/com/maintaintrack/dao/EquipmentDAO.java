@@ -17,12 +17,12 @@ public class EquipmentDAO {
 
     public void insert(Equipment e) throws SQLException {
         String sql = """
-                INSERT INTO EQUIPMENT (name, location, status, next_maintenance_date, interval_days)
-                VALUES (?, ?, ?, ?, ?);
-                """;
+            INSERT INTO EQUIPMENT (name, location, status, next_maintenance_date, interval_days, updated_at, synced)
+            VALUES (?, ?, ?, ?, ?, datetime('now'), 0);
+            """;
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
+             PreparedStatement ps = conn.prepareStatement(sql,
+                     Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, e.getName());
             ps.setString(2, e.getLocation());
             ps.setString(3, e.getStatus());
@@ -30,6 +30,9 @@ public class EquipmentDAO {
                     ? e.getNextMaintenanceDate().toString() : null);
             ps.setInt(5, e.getIntervalDays());
             ps.executeUpdate();
+
+            ResultSet keys = ps.getGeneratedKeys();
+            if (keys.next()) e.setId(keys.getInt(1));
         }
     }
 
@@ -37,14 +40,14 @@ public class EquipmentDAO {
 
     public void update(Equipment e) throws SQLException {
         String sql = """
-                UPDATE EQUIPMENT
-                SET name = ?, location = ?, status = ?,
-                    next_maintenance_date = ?, interval_days = ?
-                WHERE id = ?;
-                """;
+            UPDATE EQUIPMENT
+            SET name = ?, location = ?, status = ?,
+                next_maintenance_date = ?, interval_days = ?,
+                updated_at = datetime('now'), synced = 0
+            WHERE id = ?;
+            """;
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-
             ps.setString(1, e.getName());
             ps.setString(2, e.getLocation());
             ps.setString(3, e.getStatus());
@@ -67,7 +70,7 @@ public class EquipmentDAO {
     // ── UPDATE next_maintenance_date (caller-supplied connection) ─────────
 
     public void updateNextMaintenanceDate(int equipmentId, LocalDate date, Connection conn) throws SQLException {
-        String sql = "UPDATE EQUIPMENT SET next_maintenance_date = ? WHERE id = ?;";
+        String sql = "UPDATE EQUIPMENT SET next_maintenance_date = ?, updated_at = datetime('now'), synced = 0 WHERE id = ?;";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, date.toString());
             ps.setInt(2, equipmentId);
@@ -144,7 +147,7 @@ public class EquipmentDAO {
         LocalDate date = (dateStr != null && !dateStr.isBlank())
                 ? LocalDate.parse(dateStr) : null;
 
-        return new Equipment(
+        Equipment eq = new Equipment(
                 rs.getInt("id"),
                 rs.getString("name"),
                 rs.getString("location"),
@@ -152,5 +155,17 @@ public class EquipmentDAO {
                 date,
                 rs.getInt("interval_days")
         );
+        eq.setSyncId(rs.getString("sync_id"));
+        return eq;
+    }
+
+    public void updateSyncId(int id, String syncId) throws SQLException {
+        String sql = "UPDATE EQUIPMENT SET sync_id = ? WHERE id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, syncId);
+            ps.setInt(2, id);
+            ps.executeUpdate();
+        }
     }
 }

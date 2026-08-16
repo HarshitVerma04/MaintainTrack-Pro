@@ -100,8 +100,9 @@ public class DashboardController {
             kpiAlerts.setText(String.valueOf(totalAlerts));
             kpiAlertsBreakdown.setText(overdue + " overdue · " + lowStock + " low stock");
 
-        } catch (SQLException e) {
-            System.err.println("[Dashboard] KPI load failed: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("[Dashboard] KPI load failed: " + e.getClass().getSimpleName() + " — " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -144,8 +145,9 @@ public class DashboardController {
                 alertFeed.getChildren().add(ok);
             }
 
-        } catch (SQLException e) {
-            System.err.println("[Dashboard] Alert feed failed: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("[Dashboard] Alert feed failed: " + e.getClass().getSimpleName() + " — " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -194,8 +196,9 @@ public class DashboardController {
                 VBox row = new VBox(4, header, barBg);
                 costFeed.getChildren().add(row);
             }
-        } catch (SQLException e) {
-            System.err.println("[Dashboard] Cost feed failed: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("[Dashboard] Cost feed failed: " + e.getClass().getSimpleName() + " — " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -220,13 +223,12 @@ public class DashboardController {
                 super.updateItem(type, empty);
                 if (empty || type == null) { setText(null); setStyle(""); return; }
                 setText(type);
-                setStyle(switch (type) {
-                    case "Maintenance"   -> "-fx-text-fill: #1a7a4a; -fx-font-weight: bold;";
-                    case "Breakdown"     -> "-fx-text-fill: #8b1a1a; -fx-font-weight: bold;";
-                    case "Part Issued"   -> "-fx-text-fill: #b85c00; -fx-font-weight: bold;";
-                    case "Part Returned" -> "-fx-text-fill: #2e86de; -fx-font-weight: bold;";
-                    default              -> "";
-                });
+                String style = "";
+                if ("Maintenance".equals(type))        style = "-fx-text-fill: #1a7a4a; -fx-font-weight: bold;";
+                else if ("Breakdown".equals(type))     style = "-fx-text-fill: #8b1a1a; -fx-font-weight: bold;";
+                else if ("Part Issued".equals(type))   style = "-fx-text-fill: #b85c00; -fx-font-weight: bold;";
+                else if ("Part Returned".equals(type)) style = "-fx-text-fill: #2e86de; -fx-font-weight: bold;";
+                setStyle(style);
             }
         });
     }
@@ -236,8 +238,9 @@ public class DashboardController {
             List<String[]> activity = service.getRecentActivity(15);
             ObservableList<String[]> data = FXCollections.observableArrayList(activity);
             activityTable.setItems(data);
-        } catch (SQLException e) {
-            System.err.println("[Dashboard] Activity feed failed: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("[Dashboard] Activity feed failed: " + e.getClass().getSimpleName() + " — " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

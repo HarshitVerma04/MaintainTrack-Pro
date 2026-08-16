@@ -25,15 +25,19 @@ public class MaintenanceLogDAO {
 
     public void insert(MaintenanceLog log, Connection conn) throws SQLException {
         String sql = """
-                INSERT INTO MAINTENANCE_LOG (equipment_id, done_on, notes, done_by)
-                VALUES (?, ?, ?, ?);
-                """;
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            INSERT INTO MAINTENANCE_LOG (equipment_id, done_on, notes, done_by, updated_at, synced)
+            VALUES (?, ?, ?, ?, datetime('now'), 0);
+            """;
+        try (PreparedStatement ps = conn.prepareStatement(sql,
+                Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, log.getEquipmentId());
             ps.setString(2, log.getDoneOn().toString());
             ps.setString(3, log.getNotes());
             ps.setString(4, log.getDoneBy());
             ps.executeUpdate();
+
+            ResultSet keys = ps.getGeneratedKeys();
+            if (keys.next()) log.setId(keys.getInt(1));
         }
     }
 

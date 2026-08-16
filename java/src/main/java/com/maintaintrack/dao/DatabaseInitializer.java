@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import com.maintaintrack.dao.SettingsDAO;
 
 /**
  * DatabaseInitializer — runs once on app startup.
@@ -105,6 +106,10 @@ public class DatabaseInitializer {
 
             // Run migrations for existing databases
             migrateIssueRecord(conn);
+
+            // V2 sync migrations
+            MigrationRunner.run();
+            SettingsDAO.createTableIfMissing();
 
             System.out.println("[DB] Schema initialized successfully.");
 

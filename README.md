@@ -1,44 +1,55 @@
 # 🏭 MaintainTrack Pro
 
 > **The command center for industrial maintenance teams.**  
-> Real-time asset visibility · Proactive maintenance scheduling · Zero-gap parts management
+> Cloud + Desktop Hybrid · Real-time Asset Visibility · Proactive Maintenance Scheduling · Zero-gap Parts Management
 
 ![Java](https://img.shields.io/badge/Java-17+-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
-![JavaFX](https://img.shields.io/badge/JavaFX-17-blue?style=for-the-badge&logo=java&logoColor=white)
-![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
-![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![Maven](https://img.shields.io/badge/Maven-C71A36?style=for-the-badge&logo=apache-maven&logoColor=white)
-![Release](https://img.shields.io/badge/Release-v1.0.1-brightgreen?style=for-the-badge)
+![JavaFX](https://img.shields.io/badge/JavaFX-21-blue?style=for-the-badge&logo=java&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.2-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
+![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Supabase-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![Release](https://img.shields.io/badge/Release-v2.0.0-brightgreen?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+
+[![Live API](https://img.shields.io/badge/API-Render-46E3B7?style=flat&logo=render)](https://maintaintrack-pro.onrender.com/actuator/health)
+[![Live Web](https://img.shields.io/badge/Web-Vercel-black?style=flat&logo=vercel)](https://maintaintrack-pro.vercel.app)
+[![API Docs](https://img.shields.io/badge/Docs-Swagger-85EA2D?style=flat&logo=swagger)](https://maintaintrack-pro.onrender.com/swagger-ui.html)
 
 ---
 
 ## 📋 Table of Contents
 
 - [Overview](#-overview)
+- [Architecture](#-architecture)
 - [Tech Stack](#-tech-stack)
 - [Features](#-features)
 - [Screens](#-screens)
+- [Roles & Permissions](#-roles--permissions)
 - [Database Schema](#-database-schema)
 - [Project Structure](#-project-structure)
 - [Getting Started](#-getting-started)
+- [Environment Variables](#-environment-variables)
+- [API Documentation](#-api-documentation)
 - [Deployment](#-deployment)
+- [Security](#-security)
+- [Performance](#-performance)
+- [Desktop Installer Build](#-desktop-installer-build)
 - [Application Flow](#-application-flow)
-- [Team & Phase Split](#-team--phase-split)
-- [V2 Roadmap](#-v2-roadmap)
-- [Contributing](#-contributing)
 
 ---
 
 ## 🎯 Overview
 
-MaintainTrack Pro is a **desktop-first, Java + SQLite** operations management platform built for industrial maintenance teams. It replaces disconnected spreadsheets with a unified system for:
+MaintainTrack Pro is a **Cloud + Desktop hybrid** operations management platform built for industrial maintenance teams. V2 extends the original JavaFX desktop app with a full-stack web deployment — React frontend on Vercel, Spring Boot REST API on Render, and a shared PostgreSQL database on Supabase.
+
+It replaces disconnected spreadsheets with a unified system for:
 
 - Tracking every machine and its maintenance schedule
 - Logging breakdowns and maintenance jobs with full traceability
 - Managing spare parts inventory with low-stock alerting
-- Linking issued parts to specific breakdown repairs or PM jobs (work order system)
+- Linking issued parts to specific breakdown repairs or PM jobs
 - Generating PDF and Excel reports without any manual data wrangling
+- Role-based access control across web and desktop
 
 **Target Industries:** Manufacturing · Facilities Management · Fleet & Transport · Defence
 
@@ -49,64 +60,136 @@ MaintainTrack Pro is a **desktop-first, Java + SQLite** operations management pl
 | PM Compliance Rate | ↑ 40% |
 | Incident Closure Speed | 3× Faster |
 
+| Feature | Web | Desktop |
+|---|---|---|
+| Equipment CRUD | ✅ | ✅ |
+| Maintenance logs | ✅ | ✅ |
+| Breakdown tracking | ✅ | ✅ |
+| Parts inventory + issue | ✅ | ✅ |
+| Work orders | ✅ | ✅ |
+| Suppliers directory | ✅ | ✅ |
+| Dashboard with charts | ✅ | ✅ |
+| User management (RBAC) | ✅ | — |
+| Works offline | — | ✅ |
+| PDF / Excel reports | — | ✅ |
+
+---
+
+## 🏗 Architecture
+
+```
+┌─────────────────────┐         ┌──────────────────────────┐
+│   React Frontend    │  HTTPS  │   Spring Boot REST API   │
+│   (Vercel)          │◄───────►│   (Render)               │
+└─────────────────────┘         └────────────┬─────────────┘
+                                             │ JDBC
+┌─────────────────────┐                      ▼
+│   JavaFX Desktop    │  HTTPS  ┌──────────────────────────┐
+│   (Windows .exe)    │◄───────►│   Supabase PostgreSQL    │
+└─────────────────────┘         └──────────────────────────┘
+```
+
+- **Frontend** — React 18 + Vite + Tailwind CSS, deployed on Vercel
+- **Backend** — Spring Boot 3.2, Spring Security (JWT), deployed on Render
+- **Desktop** — JavaFX 21, packaged as a Windows installer via jpackage
+- **Database** — PostgreSQL on Supabase (shared between web and desktop)
+
 ---
 
 ## 🛠 Tech Stack
 
 | Layer | Technology | Role |
 |-------|-----------|------|
-| **UI Framework** | Java 17 + JavaFX 17 | All screens, navigation, forms (MVC pattern) |
-| **Business Logic** | Java (Service layer) | Maintenance scheduling, stock logic, work orders, KPI calculations |
-| **Database Access** | Java JDBC (DAO pattern) | All SQL via typed DAO classes |
-| **Database** | SQLite (`.db` file) | Local file — shared between Java and Python scripts |
-| **Alert Engine** | Java `ScheduledExecutorService` | Background polling every 30s; `Platform.runLater()` for thread-safe UI updates |
-| **PDF Reports** | Python 3 + fpdf2 | Per-equipment maintenance reports; called via `ProcessBuilder` |
-| **Excel Export** | Python 3 + openpyxl | 4-sheet parts usage workbook; called via `ProcessBuilder` |
-| **Build Tool** | Apache Maven | Dependency management, fat JAR packaging |
-| **Packaging** | jlink + jpackage + WiX 3.11 | Standalone Windows `.exe` installer — no Java or Python required on target machine |
-| **Python Bundling** | PyInstaller | Python scripts compiled to `.exe` and bundled inside the installer |
-| **Java IDE** | IntelliJ IDEA | Primary Java development environment |
-| **Python IDE** | VS Code | Python scripts in `/scripts` directory |
+| **Web Frontend** | React 18 + Vite + Tailwind CSS | All web screens, routing, forms |
+| **Charts** | Recharts | Dashboard bar charts and doughnut chart |
+| **REST API** | Spring Boot 3.2 | All endpoints, business logic, auth |
+| **Security** | Spring Security + JWT (jjwt 0.12.5) | Stateless auth, RBAC, BCrypt |
+| **Rate Limiting** | Bucket4j | 10 login attempts/min per IP |
+| **Cache** | Caffeine | In-memory cache on dashboard + equipment + parts |
+| **API Docs** | SpringDoc OpenAPI 3 | Auto-generated Swagger UI |
+| **ORM** | JPA / Hibernate | Entity mapping, repository pattern |
+| **Database** | PostgreSQL (Supabase) | Cloud-hosted, pooled connections |
+| **Desktop UI** | JavaFX 21 | All desktop screens, FXML layouts |
+| **Desktop DB** | SQLite | Local offline storage |
+| **PDF Reports** | Python 3 + fpdf2 | Per-equipment maintenance reports |
+| **Excel Export** | Python 3 + openpyxl | 4-sheet parts usage workbook |
+| **Build** | Apache Maven | Dependency management, fat JAR |
+| **Packaging** | jlink + jpackage + WiX 3.11 | Standalone Windows `.exe` installer |
+| **CI/CD** | GitHub Actions | Build + test on every push |
+| **Deployment** | Render (API) + Vercel (web) | Cloud hosting |
 
 ---
 
 ## ✨ Features
 
 - **Asset Registry** — Searchable record of every machine with location, status, and maintenance schedule
-- **Scheduled Maintenance** — Calendar-driven PMs with automatic `next_maintenance_date` recalculation (`done_on + interval_days`)
+- **Scheduled Maintenance** — Calendar-driven PMs with automatic `next_maintenance_date` recalculation
 - **Breakdown Logging** — Incident capture with description, resolver, and unresolved status tracking
 - **Parts & Stock Control** — Live inventory with issue/return transactions, reorder thresholds, and low-stock badges
-- **Work Order System** — Issue records optionally linked to a specific breakdown repair or maintenance job for full cost traceability
-- **Smart Alert Engine** — Background polling detects low-stock parts and overdue maintenance; alerts self-resolve when conditions clear
-- **Operations Dashboard** — Live KPI tiles: total equipment, maintenance job count, total parts spend, active alert count
-- **KPIs Screen** — Three-tab analytics: Uptime % per machine (90-day window), MTBF per machine, Cost per asset with proportional bars
-- **Activity Feed** — Filterable merged chronological view of all events across all three log tables (`UNION ALL`)
-- **PDF Maintenance Report** — Formatted report per equipment: profile, maintenance history table, breakdown table, parts cost summary
-- **Excel Parts Export** — 4-sheet workbook: Parts Summary, Issue History, Cost Per Asset, Low Stock Alerts
+- **Work Order System** — Full lifecycle: Open → In Progress → Completed, linked to equipment
+- **Role-Based Access** — ADMIN / MANAGER / TECHNICIAN roles enforced at API and frontend level
+- **Smart Alert Engine** — Background polling detects low-stock parts and overdue maintenance
+- **Operations Dashboard** — Live KPI tiles: total equipment, overdue count, low stock count, open work orders
+- **Charts** — Maintenance activity (last 6 months), breakdown frequency, equipment status doughnut
+- **Recent Activity Feed** — Merged chronological view of maintenance and breakdown events
+- **PDF Maintenance Report** — Formatted report per equipment (desktop)
+- **Excel Parts Export** — 4-sheet workbook: Parts Summary, Issue History, Cost Per Asset, Low Stock Alerts (desktop)
 - **Standalone Installer** — `.exe` installer bundles Java JRE, JavaFX, and Python scripts — zero prerequisites on target machine
+- **Swagger UI** — Full interactive API documentation at `/swagger-ui.html`
+- **Caffeine Cache** — 269× dashboard speedup (2300ms → 8ms) with automatic eviction on writes
+- **Gzip Compression** — All JSON responses over 1KB compressed automatically
 
 ---
 
 ## 🖥 Screens
 
+### Web
+
+| Screen | Description |
+|--------|-------------|
+| **Dashboard** | KPI tiles, maintenance activity chart, breakdown frequency chart, equipment status doughnut, recent activity feed |
+| **Equipment** | Full CRUD — add/edit/delete machines, colour-coded status |
+| **Parts** | Full CRUD + Issue modal — stock levels, supplier link, Low Stock / Out of Stock badges |
+| **Suppliers** | Full CRUD — contact details, linked to parts |
+| **Maintenance** | Log PM jobs; equipment next-due date recalculates automatically |
+| **Breakdowns** | Log incidents; resolve with one click |
+| **Work Orders** | Full lifecycle management with status tracking |
+| **Users** | ADMIN-only — view users, update roles, delete accounts |
+
+### Desktop
+
 | Screen | Description |
 |--------|-------------|
 | **Dashboard** | KPI tiles, alert feed, cost-per-asset bars, recent activity table |
-| **Equipment** | Full CRUD — add/edit/delete machines, colour-coded status and overdue dates |
-| **Parts & Inventory** | Full CRUD — stock levels, supplier link, low-stock badge, colour-coded qty |
-| **Suppliers** | Full CRUD — contact details, linked to parts |
-| **KPIs & Analytics** | Uptime %, MTBF, Cost Per Asset — all in a 3-tab screen with visual bars |
+| **Equipment** | Full CRUD — add/edit/delete machines |
+| **Parts & Inventory** | Full CRUD — stock levels, supplier link, low-stock badge |
+| **Suppliers** | Full CRUD — contact details |
+| **KPIs & Analytics** | Uptime %, MTBF, Cost Per Asset — 3-tab screen with visual bars |
 | **Activity Feed** | Merged feed with Type / Date / Equipment filters and keyword search |
 | **Reports & Exports** | Generate PDF per equipment; export all parts data to Excel |
-| **Maintenance Log** | Log PM jobs; equipment next-due date recalculates automatically on save |
-| **Breakdowns** | Log incidents; unresolved shown in red; total breakdown badge in header |
-| **Issues & Alerts** | Issue/return parts with optional work order link; real-time alert feed sidebar |
+| **Maintenance Log** | Log PM jobs with automatic next-due recalculation |
+| **Breakdowns** | Log incidents; unresolved shown in red |
+| **Issues & Alerts** | Issue/return parts with optional work order link |
+
+---
+
+## 🔐 Roles & Permissions
+
+| Action | ADMIN | MANAGER | TECHNICIAN |
+|---|---|---|---|
+| View all data | ✅ | ✅ | ✅ |
+| Create records | ✅ | ✅ | ✅ |
+| Edit records | ✅ | ✅ | ✅ |
+| Delete records | ✅ | ✅ | ❌ |
+| Manage users | ✅ | ❌ | ❌ |
+
+Enforced at the API layer via `@PreAuthorize` and at the frontend via `canDelete()` in `AuthContext`.
 
 ---
 
 ## 🗄 Database Schema
 
-Six tables with `EQUIPMENT` as the central entity. `ISSUE_RECORD` links to both `BREAKDOWN_LOG` and `MAINTENANCE_LOG` for work order traceability.
+Eight tables with `EQUIPMENT` as the central entity. `ISSUE_RECORD` links to both `BREAKDOWN_LOG` and `MAINTENANCE_LOG` for work order traceability. `APP_USER` is used for web auth.
 
 ```
 SUPPLIER ────── supplies ──────► PART
@@ -119,6 +202,9 @@ EQUIPMENT ── has ──► MAINTENANCE_LOG    ▼
                        │             │               │
                        └── work order link ──────────┘
                            (breakdown_id / maintenance_id)
+
+APP_USER ── authenticates ──► all web endpoints (JWT)
+WORK_ORDER ── linked to ──► EQUIPMENT
 ```
 
 ### Tables
@@ -131,12 +217,12 @@ EQUIPMENT ── has ──► MAINTENANCE_LOG    ▼
 | `PART` | `id` | `supplier_id` | `name`, `qty_on_hand`, `min_qty`, `unit`, `unit_cost` |
 | `ISSUE_RECORD` | `id` | `part_id`, `equipment_id`, `breakdown_id`\*, `maintenance_id`\* | `issued_on`, `qty`, `issued_by`, `type` |
 | `SUPPLIER` | `id` | — | `name`, `contact_name`, `phone`, `email` |
+| `WORK_ORDER` | `id` | `equipment_id` | `title`, `status`, `priority`, `assigned_to` |
+| `APP_USER` | `id` | — | `username`, `email`, `password_hash`, `role` |
 
 \* Optional FK — null for standalone stock draws, set for work order issues.
 
-> **Note:** `done_by` and `issued_by` are plain strings in the MVP. When auth is added in V2, they auto-populate from the logged-in user session.
-
-### SQL Schema
+### SQL Schema (core tables)
 
 ```sql
 CREATE TABLE SUPPLIER (
@@ -195,92 +281,41 @@ CREATE TABLE ISSUE_RECORD (
 );
 ```
 
-`breakdown_id` and `maintenance_id` are added via `ALTER TABLE` migration on first launch if they don't exist — existing databases are upgraded automatically without a reseed.
-
 ---
 
 ## 📁 Project Structure
 
 ```
 maintaintrack-pro/
-│
-├── java/                                   ← Maven project (IntelliJ IDEA)
-│   ├── pom.xml
-│   └── src/main/
-│       ├── java/com/maintaintrack/
-│       │   ├── MainApp.java                ← JavaFX entry point + screen bounds fix
-│       │   ├── controllers/
-│       │   │   ├── MainLayoutController.java   ← sidebar nav + alert polling lifecycle
-│       │   │   ├── DashboardController.java    ← KPI tiles, alert feed, activity table
-│       │   │   ├── KpisController.java         ← 3-tab KPI screen (uptime/MTBF/cost)
-│       │   │   ├── ActivityController.java     ← filtered UNION feed
-│       │   │   ├── ReportsController.java      ← PDF + Excel triggers
-│       │   │   ├── EquipmentController.java
-│       │   │   ├── PartController.java
-│       │   │   ├── SupplierController.java
-│       │   │   ├── MaintenanceController.java
-│       │   │   ├── BreakdownController.java
-│       │   │   └── IssueController.java        ← work order dropdowns + alert feed
-│       │   ├── services/
-│       │   │   ├── EquipmentService.java
-│       │   │   ├── PartService.java
-│       │   │   ├── SupplierService.java
-│       │   │   ├── MaintenanceLogService.java  ← next-due recalculation logic
-│       │   │   ├── BreakdownLogService.java
-│       │   │   ├── IssueRecordService.java     ← transactional stock update
-│       │   │   ├── WorkOrderService.java       ← traceability aggregator
-│       │   │   ├── AlertService.java           ← low-stock + overdue detection
-│       │   │   ├── AlertPollingService.java    ← ScheduledExecutorService wrapper
-│       │   │   ├── DashboardService.java       ← KPI SQL queries
-│       │   │   ├── KpiService.java             ← uptime%, MTBF, cost per asset
-│       │   │   └── ReportService.java          ← ProcessBuilder bridge to Python
-│       │   ├── dao/
-│       │   │   ├── DBConnection.java           ← dev/prod path resolution
-│       │   │   ├── DatabaseInitializer.java    ← schema creation + migrations
-│       │   │   ├── EquipmentDAO.java
-│       │   │   ├── PartDAO.java
-│       │   │   ├── SupplierDAO.java
-│       │   │   ├── MaintenanceLogDAO.java
-│       │   │   ├── BreakdownLogDAO.java
-│       │   │   └── IssueRecordDAO.java         ← findByBreakdown + findByMaintenance
-│       │   └── models/
-│       │       ├── Equipment.java
-│       │       ├── Part.java
-│       │       ├── Supplier.java
-│       │       ├── MaintenanceLog.java
-│       │       ├── BreakdownLog.java
-│       │       ├── IssueRecord.java            ← breakdownId + maintenanceId fields
-│       │       └── Alert.java                  ← type, severity, icon, timestamp
-│       └── resources/
-│           ├── fxml/
-│           │   ├── MainLayout.fxml             ← sidebar + content area shell
-│           │   ├── Dashboard.fxml
-│           │   ├── Kpis.fxml
-│           │   ├── Activity.fxml
-│           │   ├── Reports.fxml
-│           │   ├── Equipment.fxml
-│           │   ├── Parts.fxml
-│           │   ├── Suppliers.fxml
-│           │   ├── Maintenance.fxml
-│           │   ├── Breakdown.fxml
-│           │   └── Issues.fxml
-│           └── styles/
-│               └── app.css
-│
-├── scripts/                                ← Python utilities
-│   ├── requirements.txt                    ← fpdf2, openpyxl, pandas
-│   ├── generate_report.py                  ← PDF report (fpdf2); PyInstaller-safe paths
-│   ├── export_parts.py                     ← Excel export (openpyxl); 4 sheets
-│   └── seed_db.py                          ← dev seed data with --reset flag
-│
-├── bundled/                                ← PyInstaller output (gitignored)
-│   ├── generate_report.exe
-│   └── export_parts.exe
-│
+├── api/                              # Spring Boot REST API
+│   ├── src/main/java/com/maintaintrack/api/
+│   │   ├── config/                   # Security, CORS, JWT, cache, rate limit, Swagger
+│   │   ├── controllers/              # REST controllers (one per domain)
+│   │   ├── services/                 # Business logic
+│   │   ├── models/                   # JPA entities
+│   │   ├── repositories/             # Spring Data JPA repositories
+│   │   └── dto/                      # Request/response DTOs
+│   └── src/main/resources/
+│       └── application.properties
+├── web/                              # React frontend
+│   ├── src/
+│   │   ├── pages/                    # One component per page
+│   │   ├── context/                  # AuthContext (JWT + role helpers)
+│   │   └── api/                      # Axios instance + interceptors
+│   └── .env                          # VITE_API_URL
+├── java/                             # JavaFX desktop application
+│   └── src/main/java/com/maintaintrack/
+│       ├── controllers/              # FXML controllers
+│       ├── services/                 # Business logic + API client
+│       ├── dao/                      # SQLite data access
+│       └── auth/                     # ApiAuthService, AuthContext, JWT
+├── scripts/                          # Python report/export scripts
+│   ├── generate_report.py            # PDF per-equipment report
+│   ├── export_parts.py               # Excel parts workbook
+│   └── seed_db.py                    # Sample data seeder
 ├── data/
-│   └── maintaintrack.db                    ← dev SQLite file (gitignored)
-│
-├── .gitignore
+│   └── maintaintrack.db              # SQLite database (local dev)
+├── .github/workflows/                # GitHub Actions CI
 └── README.md
 ```
 
@@ -290,74 +325,156 @@ maintaintrack-pro/
 
 ### Prerequisites
 
-| Tool | Version | Install |
-|------|---------|---------|
-| Java JDK | 17+ | [adoptium.net](https://adoptium.net) |
-| JavaFX SDK | 17.0.19 | [gluonhq.com/products/javafx](https://gluonhq.com/products/javafx) |
-| Apache Maven | 3.8+ | [maven.apache.org](https://maven.apache.org) |
-| Python | 3.10+ | [python.org](https://python.org) |
-| IntelliJ IDEA | Latest | [jetbrains.com](https://jetbrains.com/idea) |
-| VS Code | Latest | [code.visualstudio.com](https://code.visualstudio.com) |
+- Java 17+
+- Node.js 18+
+- Maven 3.9+
+- Python 3.10+ (desktop scripts only)
 
-### Setup
+### 1. Clone the repo
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/HarshitVerma04/MaintainTrack-Pro.git
-cd MaintainTrack-Pro
+git clone https://github.com/HarshitVerma04/maintaintrack-pro.git
+cd maintaintrack-pro
+```
 
-# 2. Create Python venv and install dependencies
-cd scripts
-python -m venv venv
-venv\Scripts\activate        # Windows
-pip install -r requirements.txt
-cd ..
+### 2. Run the API
 
-# 3. Run the Java app once to create the database schema
-# (Use IntelliJ Run button or:)
-# cd java && mvn clean javafx:run
+```powershell
+cd api
+# Set environment variables (or use run.ps1):
+$env:DB_URL="your-supabase-jdbc-url"
+$env:DB_USER="your-db-user"
+$env:DB_PASS="your-db-password"
+$env:JWT_SECRET="your-256-bit-secret"
+$env:JWT_EXPIRY_MS="28800000"
+mvn spring-boot:run
+```
 
-# 4. Seed the database with sample data
+API runs at `http://localhost:8080`  
+Swagger UI at `http://localhost:8080/swagger-ui.html`
+
+### 3. Run the web frontend
+
+```bash
+cd web
+npm install
+# Create .env:
+# VITE_API_URL=http://localhost:8080
+npm run dev
+```
+
+Frontend runs at `http://localhost:5173`
+
+### 4. Run the desktop app
+
+```bash
+cd java
+mvn clean javafx:run
+```
+
+> **IntelliJ:** Working Directory must be set to the project root (`maintaintrack-pro/`), not `java/`.  
+> VM Options: `--module-path "C:\javafx-sdk-17.0.19\lib" --add-modules javafx.controls,javafx.fxml`
+
+### 5. Seed the database with sample data (desktop / SQLite only)
+
+```bash
 python scripts/seed_db.py
-
-# 5. Run the app
-# IntelliJ: press the green ▶ Run button (MainApp run config)
-# Terminal: cd java && mvn clean javafx:run
-```
-
-### IntelliJ Run Configuration
-
-The run configuration must have **Working Directory** set to the project root (`maintaintrack-pro/`), not the `java/` subfolder. This ensures `data/maintaintrack.db` and `scripts/` resolve correctly.
-
-VM Options required:
-```
---module-path "C:\javafx-sdk-17.0.19\lib" --add-modules javafx.controls,javafx.fxml
-```
-
-### Reseed with fresh data
-
-```bash
+# Reset with fresh data:
 python scripts/seed_db.py --reset
 ```
 
 ---
 
+## 🔑 Environment Variables
+
+### API (Render environment variables)
+
+| Variable | Description |
+|---|---|
+| `DB_URL` | Supabase JDBC connection string |
+| `DB_USER` | Database username |
+| `DB_PASS` | Database password |
+| `JWT_SECRET` | 256-bit secret for signing JWTs |
+| `JWT_EXPIRY_MS` | Token validity in ms (default: 28800000 = 8h) |
+
+### Web frontend (Vercel environment variables)
+
+| Variable | Description |
+|---|---|
+| `VITE_API_URL` | Full URL of the deployed API |
+
+---
+
+## 📖 API Documentation
+
+Full interactive docs available at:  
+**[https://maintaintrack-pro.onrender.com/swagger-ui.html](https://maintaintrack-pro.onrender.com/swagger-ui.html)**
+
+Key endpoints:
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| POST | `/auth/register` | None | Create a new user |
+| POST | `/auth/login` | None | Get JWT token |
+| GET | `/api/equipment` | JWT | List all equipment |
+| POST | `/api/maintenance/log` | JWT | Log a maintenance event |
+| GET | `/api/dashboard/kpis` | JWT | Dashboard stats (cached 60s) |
+| GET | `/api/parts` | JWT | Parts inventory |
+| GET | `/api/parts/low-stock` | JWT | Parts below minimum quantity |
+| GET | `/api/work-orders` | JWT | All work orders |
+| GET | `/actuator/health` | None | Health check |
+
+---
+
 ## 📦 Deployment
 
-The app ships as a fully standalone Windows `.exe` installer — no Java, Python, or JavaFX required on the target machine.
+| Service | Platform | URL |
+|---|---|---|
+| REST API | Render (free tier) | https://maintaintrack-pro.onrender.com |
+| Web frontend | Vercel | https://maintaintrack-pro.vercel.app |
+| Database | Supabase | PostgreSQL (pooled connection) |
+
+> **Note:** Render free tier spins down after 15 minutes of inactivity. The first request after idle takes ~30 seconds to cold-start. Subsequent requests are instant.
+
+---
+
+## 🔒 Security
+
+- Passwords hashed with BCrypt (strength 10)
+- JWT tokens signed with HMAC-SHA384, expire after 8 hours
+- Rate limiting on `/auth/login` — 10 attempts per minute per IP (Bucket4j)
+- CORS locked to Vercel origin only in production
+- Security headers on all responses (`X-Frame-Options: DENY`, `HSTS`, `X-Content-Type-Options`)
+- Actuator locked down — only `/health` exposed publicly
+- Role-based access enforced at both API (`@PreAuthorize`) and frontend (`canDelete()`) level
+- Stack traces never returned to clients — full errors logged server-side only
+
+---
+
+## ⚡ Performance
+
+- Caffeine in-memory cache on dashboard KPIs (60s TTL) and equipment/parts lists (5min TTL)
+- Cache evicted automatically on any write operation
+- Dashboard response time: ~2300ms uncached → ~8ms cached (**269× speedup**)
+- Gzip compression enabled on all JSON responses over 1KB
+
+---
+
+## 🖥 Desktop Installer Build
+
+The desktop app ships as a fully standalone Windows `.exe` installer — no Java, Python, or JavaFX required on the target machine.
 
 ### Production Database Location
 
-In production the database lives at:
 ```
 C:\Users\<name>\AppData\Roaming\MaintainTrackPro\maintaintrack.db
 ```
 
-`DBConnection.java` detects dev vs prod automatically — if `scripts/` folder doesn't exist (installed build), it uses AppData. Database survives uninstalls and app updates.
+`DBConnection.java` detects dev vs prod automatically. Database survives uninstalls and app updates.
 
-### Building the Installer
+### Build Steps
 
-**Step 1 — Bundle Python scripts with PyInstaller**
+**Step 1 — Bundle Python scripts**
 
 ```bash
 scripts\venv\Scripts\activate
@@ -368,9 +485,7 @@ pyinstaller --onefile scripts/export_parts.py --distpath bundled/
 **Step 2 — Build the fat JAR**
 
 ```bash
-cd java
-mvn clean package
-cd ..
+cd java && mvn clean package && cd ..
 ```
 
 **Step 3 — Copy bundled exes into target**
@@ -381,9 +496,7 @@ copy bundled\generate_report.exe java\target\bundled\generate_report.exe
 copy bundled\export_parts.exe java\target\bundled\export_parts.exe
 ```
 
-**Step 4 — Build custom JRE with JavaFX baked in**
-
-Download JavaFX 17 jmods from gluonhq.com, extract to `C:\javafx-jmods-17.0.19`, then:
+**Step 4 — Build custom JRE with JavaFX**
 
 ```powershell
 & "C:\Program Files\Java\jdk-23\bin\jlink.exe" `
@@ -393,9 +506,7 @@ Download JavaFX 17 jmods from gluonhq.com, extract to `C:\javafx-jmods-17.0.19`,
   --output custom-jre
 ```
 
-**Step 5 — Run jpackage**
-
-Requires [WiX Toolset 3.11](https://github.com/wixtoolset/wix3/releases/tag/wix3112rtm) installed and on PATH.
+**Step 5 — Run jpackage** (requires [WiX Toolset 3.11](https://github.com/wixtoolset/wix3/releases/tag/wix3112rtm))
 
 ```powershell
 & "C:\Program Files\Java\jdk-23\bin\jpackage.exe" `
@@ -407,13 +518,9 @@ Requires [WiX Toolset 3.11](https://github.com/wixtoolset/wix3/releases/tag/wix3
   --dest installer `
   --runtime-image custom-jre `
   --win-shortcut --win-menu --win-dir-chooser `
-  --app-version 1.0.1 `
+  --app-version 2.0.0 `
   --vendor "MaintainTrack"
 ```
-
-> **Note:** Windows SmartScreen will warn on first run since the exe is unsigned. Click "More info → Run anyway". This is expected for software without a code signing certificate.
-
-### Download
 
 Pre-built installer available on the [Releases page](https://github.com/HarshitVerma04/MaintainTrack-Pro/releases).
 
@@ -422,102 +529,49 @@ Pre-built installer available on the [Releases page](https://github.com/HarshitV
 ## 🔄 Application Flow
 
 ```
-Open Dashboard
-├── Equipment Side
-│   ├── View equipment list (all machines + status + overdue flag)
-│   └── Select equipment → Maintenance Log
-│       ├── Log PM job (date, notes, done_by)
-│       │   → next_maintenance_date auto-recalculates
-│       └── Log breakdown (description, resolved_by)
+Login (JWT auth)
+├── Web App
+│   ├── Dashboard — KPIs + charts + activity feed
+│   ├── Equipment — CRUD, status tracking
+│   ├── Maintenance — log PM jobs, auto next-date recalc
+│   ├── Breakdowns — log and resolve incidents
+│   ├── Parts — CRUD + issue modal (decrements stock)
+│   ├── Work Orders — Open → In Progress → Completed
+│   ├── Suppliers — directory linked to parts
+│   └── Users (ADMIN only) — manage roles
 │
-├── Parts Side
-│   ├── View parts list (stock levels + low-stock badges)
-│   └── Issues & Alerts screen
-│       ├── Issue / return a part (transactional qty update)
-│       ├── Link to breakdown → repair work order
-│       └── Link to maintenance job → PM consumables tracking
-│
-└── Dashboard & Analytics
-    ├── KPI tiles (equipment count, maintenance jobs, spend, alerts)
-    ├── Alert feed (overdue maintenance + low stock — auto-polling)
-    ├── KPIs screen (uptime %, MTBF, cost per asset)
-    ├── Activity feed (merged chronological view, filterable)
-    └── Reports (PDF per equipment, Excel parts export)
+└── Desktop App
+    ├── Dashboard — KPI tiles, alert feed, recent activity
+    ├── Equipment — CRUD + maintenance schedule
+    ├── Parts — stock control with issue/return
+    ├── Breakdowns — incident logging
+    ├── KPIs — Uptime %, MTBF, Cost Per Asset
+    ├── Activity Feed — merged chronological view
+    └── Reports — PDF per equipment, Excel parts export
 ```
 
 ---
 
-## 👥 Team & Phase Split
+## 👥 Team
 
-| Phase | Days | Owner | Scope |
-|-------|------|-------|-------|
+| Phase | Days | Developer     | Scope |
+|-------|------|---------|-------|
 | **Phase 1** | 1–5 | Harshit | Project scaffold, DB schema, Equipment/Parts/Suppliers CRUD |
-| **Phase 2** | 6–9 | Harshit | Maintenance scheduler, Breakdown log, Work order system (Days 8-9) |
-| **Phase 2** | 10–12 | Adarsh | Issue/Return form, transactional stock update |
-| **Phase 3** | 13–19 | Adarsh | Alert engine, background polling, `AlertPollingService` |
-| **Phase 4** | 20–28 | Harshit | Dashboard, KPIs, Activity Feed, PDF/Excel reports, deployment |
-
-**Branch convention used:**
-- `AdarshVishwaraj-phase3-complete-set-of-files-with-previous-phases-combined` — Adarsh
-- `phase4/dashboard-kpis` — Harshit
-- `test/full-merge` — integration testing branch before merging to `main`
+| **Phase 2** | 6–9 | Harshit | Maintenance scheduler, Breakdown log, Work order system |
+| **Phase 2** | 10–12 | Adarsh  | Issue/Return form, transactional stock update |
+| **Phase 3** | 13–19 | Adarsh  | Alert engine, background polling, `AlertPollingService` |
+| **Phase 4** | 20–28 | Harshit | Dashboard, KPIs, Activity Feed, PDF/Excel reports, desktop packaging |
+| **Phase 5 (V2)** | 29–40 | Harshit | Spring Boot REST API, React web frontend, JWT auth, cloud deployment, security hardening, caching, Swagger docs |
 
 ---
 
-## 🗺 V2 Roadmap
+## 📄 Licence
 
-### Authentication
-
-Auth was deliberately excluded from the MVP — it consumes a full development week and is unnecessary for a small trusted internal team.
-
-| Component | MVP (Now) | V2 (With Auth) |
-|-----------|-----------|----------------|
-| `done_by` / `issued_by` | Typed manually | Auto-filled from session |
-| Access control | None | Role-based: Technician vs Manager |
-| Login screen | Not present | Username + password + JWT |
-| Dashboard scope | All data visible | Filtered to assigned equipment |
-| Report access | Anyone | Manager role only |
-
-### Cloud Sync + Web Version
-
-The planned V2 architecture:
-
-```
-Desktop App (JavaFX)     Web App (React)
-       │                       │
-       ▼                       ▼
-  Local SQLite  ◄─ sync ─►  Cloud PostgreSQL
-                   REST API
-                (Spring Boot)
-```
-
-**Phase plan:**
-- **V2.1** — Spring Boot REST API wrapping existing service/DAO layer
-- **V2.2** — JWT auth, User table, login screen in JavaFX
-- **V2.3** — Cloud sync (push-on-save with offline queue)
-- **V2.4** — React web frontend consuming the same API
-- **V2.5** — Deploy to cloud (Vercel + Railway + Supabase)
-
-The existing Java service and DAO classes are reused without modification — only the controllers change (JavaFX → `@RestController`).
-
----
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/your-feature-name`
-3. Commit with a clear message: `git commit -m "feat: add low-stock alert polling"`
-4. Push: `git push origin feature/your-feature-name`
-5. Open a Pull Request — include which phase the change belongs to
-
----
-
-## 📄 License
-
-MIT License — see [LICENSE](LICENSE) for details.
+MIT Licence — see [LICENCE](LICENCE) for details.
 
 ---
 
 <div align="center">
-  <strong>MaintainTrack Pro v1.0.1</strong> — Built for the teams that keep everything running.
+  <strong>MaintainTrack Pro v2.0.0</strong> — Built for the teams that keep everything running.<br/>
+  <em>Harshit Verma, KIIT University · B.Tech CSE 2023–27 · </em>
 </div>

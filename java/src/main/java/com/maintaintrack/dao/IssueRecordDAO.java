@@ -6,6 +6,7 @@ import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.sql.Statement;
 
 /**
  * IssueRecordDAO - all SQL for the ISSUE_RECORD table.
@@ -30,14 +31,17 @@ public class IssueRecordDAO {
     }
 
     public void insert(IssueRecord r, Connection conn) throws SQLException {
-        String sql = "INSERT INTO ISSUE_RECORD " +
-            "(part_id, equipment_id, breakdown_id, maintenance_id, issued_on, qty, issued_by, type) " +
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        String sql = """
+            INSERT INTO ISSUE_RECORD
+            (part_id, equipment_id, breakdown_id, maintenance_id, issued_on, qty, issued_by, type, updated_at, synced)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), 0);
+            """;
+        try (PreparedStatement ps = conn.prepareStatement(sql,
+                Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, r.getPartId());
             ps.setInt(2, r.getEquipmentId());
             if (r.getBreakdownId() != null)  ps.setInt(3, r.getBreakdownId());
-            else                              ps.setNull(3, Types.INTEGER);
+            else                             ps.setNull(3, Types.INTEGER);
             if (r.getMaintenanceId() != null) ps.setInt(4, r.getMaintenanceId());
             else                              ps.setNull(4, Types.INTEGER);
             ps.setString(5, r.getIssuedOn().toString());
@@ -45,16 +49,20 @@ public class IssueRecordDAO {
             ps.setString(7, r.getIssuedBy());
             ps.setString(8, r.getType());
             ps.executeUpdate();
+
+            ResultSet keys = ps.getGeneratedKeys();
+            if (keys.next()) r.setId(keys.getInt(1));
         }
     }
 
     public void adjustPartQty(int partId, int qty,
-                               String type, Connection conn) throws SQLException {
+                              String type, Connection conn) throws SQLException {
         String sql = "issue".equals(type)
-            ? "UPDATE PART SET qty_on_hand = qty_on_hand - ? WHERE id = ?;"
-            : "UPDATE PART SET qty_on_hand = qty_on_hand + ? WHERE id = ?;";
+                ? "UPDATE PART SET qty_on_hand = qty_on_hand - ?, updated_at = datetime('now'), synced = 0 WHERE id = ?;"
+                : "UPDATE PART SET qty_on_hand = qty_on_hand + ?, updated_at = datetime('now'), synced = 0 WHERE id = ?;";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, qty); ps.setInt(2, partId);
+            ps.setInt(1, qty);
+            ps.setInt(2, partId);
             ps.executeUpdate();
         }
     }

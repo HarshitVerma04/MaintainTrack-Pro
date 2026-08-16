@@ -5,6 +5,7 @@ import com.maintaintrack.models.Part;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.sql.Statement;
 
 /**
  * PartDAO — handles all SQL for the PART table.
@@ -16,11 +17,12 @@ public class PartDAO {
 
     public void insert(Part p) throws SQLException {
         String sql = """
-                INSERT INTO PART (supplier_id, name, qty_on_hand, min_qty, unit, unit_cost)
-                VALUES (?, ?, ?, ?, ?, ?);
-                """;
+            INSERT INTO PART (supplier_id, name, qty_on_hand, min_qty, unit, unit_cost, updated_at, synced)
+            VALUES (?, ?, ?, ?, ?, ?, datetime('now'), 0);
+            """;
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql,
+                     Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, p.getSupplierId());
             ps.setString(2, p.getName());
             ps.setInt(3, p.getQtyOnHand());
@@ -28,6 +30,9 @@ public class PartDAO {
             ps.setString(5, p.getUnit());
             ps.setDouble(6, p.getUnitCost());
             ps.executeUpdate();
+
+            ResultSet keys = ps.getGeneratedKeys();
+            if (keys.next()) p.setId(keys.getInt(1));
         }
     }
 
@@ -35,11 +40,12 @@ public class PartDAO {
 
     public void update(Part p) throws SQLException {
         String sql = """
-                UPDATE PART
-                SET supplier_id = ?, name = ?, qty_on_hand = ?,
-                    min_qty = ?, unit = ?, unit_cost = ?
-                WHERE id = ?;
-                """;
+            UPDATE PART
+            SET supplier_id = ?, name = ?, qty_on_hand = ?,
+                min_qty = ?, unit = ?, unit_cost = ?,
+                updated_at = datetime('now'), synced = 0
+            WHERE id = ?;
+            """;
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, p.getSupplierId());
