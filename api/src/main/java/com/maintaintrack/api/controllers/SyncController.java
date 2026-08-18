@@ -8,12 +8,12 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.*;
 
-private static final org.slf4j.Logger logger =
-        org.slf4j.LoggerFactory.getLogger(SyncController.class);
-
 @RestController
 @RequestMapping("/api/sync")
 public class SyncController {
+
+    private static final org.slf4j.Logger logger =
+            org.slf4j.LoggerFactory.getLogger(SyncController.class);
 
     private final EquipmentRepository      equipRepo;
     private final PartRepository           partRepo;
@@ -291,59 +291,6 @@ public class SyncController {
             }
         }
 
-        @PostMapping("/delete")
-        public ResponseEntity<Map<String, Object>> delete(
-                @RequestBody Map<String, Object> payload) {
-
-            String table  = (String) payload.get("table");
-            String syncId = (String) payload.get("syncId");
-
-            if (table == null || syncId == null)
-                return ResponseEntity.badRequest()
-                        .body(Map.of("error", "table and syncId required"));
-
-            try {
-                int deleted = switch (table) {
-                    case "MAINTENANCE_LOG" -> {
-                        maintenanceRepo.findBySyncId(syncId)
-                                .ifPresent(m -> maintenanceRepo.delete(m));
-                        yield 1;
-                    }
-                    case "BREAKDOWN_LOG" -> {
-                        breakdownRepo.findBySyncId(syncId)
-                                .ifPresent(b -> breakdownRepo.delete(b));
-                        yield 1;
-                    }
-                    case "EQUIPMENT" -> {
-                        equipRepo.findBySyncId(syncId)
-                                .ifPresent(e -> equipRepo.delete(e));
-                        yield 1;
-                    }
-                    case "PART" -> {
-                        partRepo.findBySyncId(syncId)
-                                .ifPresent(p -> partRepo.delete(p));
-                        yield 1;
-                    }
-                    case "SUPPLIER" -> {
-                        supplierRepo.findBySyncId(syncId)
-                                .ifPresent(s -> supplierRepo.delete(s));
-                        yield 1;
-                    }
-                    default -> 0;
-                };
-
-                return ResponseEntity.ok(Map.of(
-                        "deleted", deleted,
-                        "table",   table,
-                        "syncId",  syncId));
-
-            } catch (Exception e) {
-                logger.error("Sync delete failed", e);
-                return ResponseEntity.internalServerError()
-                        .body(Map.of("error", e.getMessage()));
-            }
-        }
-
         // ── Summary response ─────────────────────────────────────────────────
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("accepted",  accepted);
@@ -351,6 +298,60 @@ public class SyncController {
         result.put("errors",    errors);
         result.put("timestamp", LocalDateTime.now().toString());
         return ResponseEntity.ok(result);
+    }
+
+    // ── POST /api/sync/delete — desktop pushes local deletions to cloud ──────
+    @PostMapping("/delete")
+    public ResponseEntity<Map<String, Object>> delete(
+            @RequestBody Map<String, Object> payload) {
+
+        String table  = (String) payload.get("table");
+        String syncId = (String) payload.get("syncId");
+
+        if (table == null || syncId == null)
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "table and syncId required"));
+
+        try {
+            int deleted = switch (table) {
+                case "MAINTENANCE_LOG" -> {
+                    maintenanceRepo.findBySyncId(syncId)
+                            .ifPresent(m -> maintenanceRepo.delete(m));
+                    yield 1;
+                }
+                case "BREAKDOWN_LOG" -> {
+                    breakdownRepo.findBySyncId(syncId)
+                            .ifPresent(b -> breakdownRepo.delete(b));
+                    yield 1;
+                }
+                case "EQUIPMENT" -> {
+                    equipRepo.findBySyncId(syncId)
+                            .ifPresent(e -> equipRepo.delete(e));
+                    yield 1;
+                }
+                case "PART" -> {
+                    partRepo.findBySyncId(syncId)
+                            .ifPresent(p -> partRepo.delete(p));
+                    yield 1;
+                }
+                case "SUPPLIER" -> {
+                    supplierRepo.findBySyncId(syncId)
+                            .ifPresent(s -> supplierRepo.delete(s));
+                    yield 1;
+                }
+                default -> 0;
+            };
+
+            return ResponseEntity.ok(Map.of(
+                    "deleted", deleted,
+                    "table",   table,
+                    "syncId",  syncId));
+
+        } catch (Exception e) {
+            logger.error("Sync delete failed", e);
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", e.getMessage()));
+        }
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
